@@ -1,0 +1,125 @@
+ccsr,description,prevalence
+CIR007,Essential hypertension,0.221286265148733
+END010,Disorders of lipid metabolism,0.167806647080426
+MUS010,"Musculoskeletal pain, not low back pain",0.09594197576202718
+END005,"Diabetes mellitus, Type 2",0.0952533969886155
+END002,Diabetes mellitus without complication,0.0952533969886155
+MBD005,Anxiety and fear-related disorders,0.0802653323540213
+MBD002,Depressive disorders,0.07057932427469703
+END001,Thyroid disorders,0.07005141388174807
+MUS006,Osteoarthritis,0.0667921410209328
+RSP009,Asthma,0.06323448402497246
+DIG004,Esophageal disorders,0.0588505325009181
+NVS016,Sleep wake disorders,0.054145244215938304
+SKN007,Other specified and unspecified skin disorders,0.049371098053617335
+FAC016,"Exposure, encounters, screening or contact with infectious disease",0.04781031950055086
+MUS011,Spondylopathies/spondyloarthropathy (including infective),0.04484943077488065
+RSP006,Other specified upper respiratory infections,0.042416452442159386
+INJ031,Allergic reactions,0.039157179581344105
+SYM016,Other general signs and symptoms,0.037619353654058024
+RSP007,Other specified and unspecified upper respiratory disease,0.03672420124862284
+MBD014,Neurodevelopmental disorders,0.03107785530664708
+INJ067,"Allergic reactions, subsequent encounter",0.03105490268086669
+INJ064,"Other unspecified injuries, subsequent encounter",0.029540029379361
+CIR011,Coronary atherosclerosis and other heart disease,0.029287550495776717
+MUS025,Other specified connective tissue disease,0.02926459786999633
+INF012,Coronavirus disease – 2019 (COVID-19),0.028966213734851268
+GEN004,Urinary tract infections,0.026923430040396622
+NVS010,Headache; including migraine,0.026808666911494677
+SYM013,Respiratory signs and symptoms,0.026716856408373117
+RSP003,Influenza,0.025638082996694823
+INF008,Viral infection,0.02531674623576937
+SKN002,Other specified inflammatory condition of skin,0.02437568857877341
+EYE002,Cataract and other lens disorders,0.02313624678663239
+SYM006,Abdominal pain and other digestive/abdomen signs and symptoms,0.022998531031950056
+RSP001,Sinusitis,0.02286081527726772
+MUS038,Low back pain,0.02253947851634227
+CIR017,Cardiac dysrhythmias,0.022424715387440324
+EAR001,Otitis media,0.02068031582813074
+DIG025,Other specified and unspecified gastrointestinal disorders,0.02068031582813074
+END007,Nutritional deficiencies,0.020404884318766067
+FAC014,Medical examination/evaluation,0.020152405435181785
+INF003,Bacterial infections,0.020106500183621007
+INJ061,"Sprains and strains, subsequent encounter",0.020083547557840618
+SYM010,Nervous system signs and symptoms,0.020083547557840618
+FAC003,"Encounter for observation and examination for conditions ruled out (excludes infectious disease, neoplasm, mental disorders)",0.019486779287550497
+SYM014,Skin/Subcutaneous signs and symptoms,0.01941792141020933
+DIG002,Disorders of teeth and gingiva,0.01932611090708777
+FAC012,Other specified encounters and counseling,0.019142489900844658
+SYM017,Abnormal findings without diagnosis,0.018867058391479986
+MBD007,Trauma- and stressor-related disorders,0.017558758721997796
+FAC009,"Implant, device or graft related encounter",0.01746694821887624
+EYE003,Glaucoma,0.017306279838413513
+NEO028,Skin cancers - all other types,0.016961990451707674
+SYM012,Circulatory signs and symptoms,0.016916085200146896
+FAC013,Contraceptive and procreative management,0.01682427469702534
+EYE009,Refractive error,0.016686558942343003
+RSP008,Chronic obstructive pulmonary disease and bronchiectasis,0.016617701065001836
+MUS003,Rheumatoid arthritis and related disease,0.01620455380095483
+CIR009,Acute myocardial infarction,0.015355306647080427
+MUS007,Other specified joint disorders,0.014988064634594197
+EYE005,Retinal and vitreous conditions,0.014161770106500184
+FAC025,Other specified status,0.013840433345574733
+INF004,Fungal infections,0.013817480719794344
+RSP005,Acute bronchitis,0.013381380829966948
+PRG029,"Uncomplicated pregnancy, delivery or puerperium",0.013037091443261109
+EAR006,Other specified and unspecified disorders of the ear,0.012945280940139551
+DIG008,Other specified and unspecified disorders of stomach and duodenum,0.012899375688578773
+END011,Fluid and electrolyte disorders,0.012876423062798384
+NVS012,Transient cerebral ischemia,0.012784612559676826
+MUS033,Gout,0.012738707308116048
+NVS019,Nervous system pain and pain syndromes,0.012623944179214102
+NVS017,Nerve and nerve root disorders,0.012164891663606316
+SKN001,Skin and subcutaneous tissue infections,0.012141939037825927
+NEO073,Benign neoplasms,0.012141939037825927
+MUS009,Tendon and synovial disorders,0.011843554902680867
+FAC008,Neoplasm-related encounters,0.011820602276900478
+EAR004,Hearing loss,0.011453360264414248
+EYE010,Blindness and vision defects,0.011200881380829968
+SYM015,General sensation/perception signs and symptoms,0.011132023503488799
+EYE008,Oculofacial plastics and orbital conditions,0.010948402497245685
+GEN012,Hyperplasia of prostate,0.010718876239441791
+SYM004,Nausea and vomiting,0.010695923613661402
+RSP002,Pneumonia (except that caused by tuberculosis),0.010374586852735953
+GEN006,Other specified and unspecified diseases of kidney and ureters,0.009846676459786999
+NVS015,Polyneuropathies,0.00980077120822622
+EYE012,Other specified eye disorders,0.009617150201983107
+END015,Other specified and unspecified endocrine disorders,0.009318766066838046
+CIR030,Aortic and peripheral arterial embolism or thrombosis,0.009318766066838046
+MUS028,Other specified bone disease and musculoskeletal deformities,0.009249908189496878
+MBD003,Bipolar and related disorders,0.009226955563716489
+NVS009,Epilepsy; convulsions,0.0092040029379361
+GEN023,Menopausal disorders,0.009089239809034153
+NEO030,Breast cancer - all other types,0.008974476680132208
+GEN005,Calculus of urinary tract,0.00851542416452442
+EYE001,Cornea and external disease,0.008492471538744032
+NEO072,Neoplasms of unspecified nature or uncertain behavior,0.008194087403598971
+INJ042,"Fracture of lower limb (except hip), subsequent encounter",0.008148182152038193
+MUS026,Muscle disorders,0.007987513771575468
+INJ041,"Fracture of the upper limb, subsequent encounter",0.00796456114579508
+CIR012,Nonspecific chest pain,0.00789570326845391
+SYM011,Genitourinary signs and symptoms,0.007666177010650019
+SYM002,Fever,0.007643224384869629
+MBD013,Miscellaneous mental and behavioral disorders/conditions,0.007643224384869629
+CIR015,Other and ill-defined heart disease,0.00762027175908924
+DIG010,Abdominal hernia,0.007574366507528461
+FAC010,Other aftercare encounter,0.007551413881748072
+RSP016,Other specified and unspecified lower respiratory disease,0.007505508630187293
+GEN025,Other specified female genital disorders,0.007344840249724568
+GEN016,Other specified male genital disorders,0.0071841718692618435
+NVS006,Other nervous system disorders (often hereditary or degenerative),0.0071612192434814545
+GEN017,Nonmalignant breast conditions,0.006771024605214836
+MUS013,Osteoporosis,0.006748071979434447
+GEN008,Urinary incontinence,0.006633308850532501
+INJ027,Other unspecified injury,0.006587403598971722
+BLD003,Aplastic anemia,0.006472640470069776
+DIG001,Intestinal infection,0.006449687844289387
+NEO039,Male reproductive system cancers - prostate,0.006266066838046273
+GEN007,Other specified and unspecified diseases of bladder and urethra,0.006174256334924715
+INF009,"Parasitic, other specified and unspecified infections",0.005921777451340433
+NEO025,Skin cancers - melanoma,0.005761109070877709
+DEN001,Any dental condition including traumatic injury,0.00571520381931693
+INJ049,"Open wounds to limbs, subsequent encounter",0.005554535438854205
+DEN002,Nontraumatic dental conditions,0.005325009181050312
+SKN005,Contact dermatitis,0.005256151303709144
+DIG019,Other specified and unspecified liver disease,0.00507253029746603

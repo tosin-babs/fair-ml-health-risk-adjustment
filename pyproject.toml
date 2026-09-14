@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "riskfair"
+version = "0.1.0"
+description = "Accuracy, fairness, interpretability and coding sensitivity for health-cost prediction and risk adjustment"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [{ name = "Oluwatosin Dorcas Babalola", email = "obabalola4@student.gsu.edu" }]
+requires-python = ">=3.10"
+dependencies = [
+    "numpy>=1.24",
+    "pandas>=2.0",
+    "scikit-learn>=1.4",
+    "lightgbm>=4.0",
+]
+keywords = ["risk adjustment", "health economics", "actuarial", "fairness", "machine learning", "survey data"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering",
+]
+
+[project.optional-dependencies]
+neural = ["torch>=2.1"]
+explain = ["shap>=0.44"]
+dev = ["pytest>=7"]
+
+[project.urls]
+Repository = "https://github.com/tosin-babs/fair-ml-health-risk-adjustment"
+
+[tool.setuptools]
+packages = ["riskfair"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

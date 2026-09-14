@@ -1,0 +1,82 @@
+{
+  "params": {
+    "ROOT": "/Users/temitope/Desktop/paper2/paper6",
+    "RAW": "/Users/temitope/Desktop/paper2/paper6/data/raw",
+    "MEPS": "/Users/temitope/Desktop/paper2/paper6/data/raw/meps",
+    "DERIVED": "/Users/temitope/Desktop/paper2/paper6/data/derived",
+    "TABLES": "/Users/temitope/Desktop/paper2/paper6/output/tables",
+    "FIGURES": "/Users/temitope/Desktop/paper2/paper6/output/figures",
+    "SEED": "2026",
+    "LONELY_PSU": "adjust",
+    "PANELS": "{23: {'file': 'h217.dta', 'year1': 2018, 'conditions': 'h207.dta'}, 24: {'file': 'h225.dta', 'year1': 2019, 'conditions': 'h214.dta'}, 25: {'file': 'h234.dta', 'year1': 2020, 'conditions': 'h222.dta'}, 26: {'file': 'h244.dta', 'year1': 2021, 'conditions': 'h231.dta'}, 27: {'file': 'h252.dta', 'year1': 2022, 'conditions': 'h241.dta'}}",
+    "BASE_YEAR": "2024",
+    "CPI_TO_BASE": "{2018: 1.24922, 2019: 1.22699, 2020: 1.21204, 2021: 1.15765, 2022: 1.07187, 2023: 1.0295, 2024: 1.0}",
+    "HEALTH_ROUND": "2",
+    "FUNCTION_ROUND": "1",
+    "EXCLUDE_DIED": "True",
+    "AGE_BANDS": "[(0, 4), (5, 17), (18, 24), (25, 34), (35, 44), (45, 54), (55, 64), (65, 74), (75, 84), (85, 200)]",
+    "CCSR_MIN_PREVALENCE": "0.005",
+    "FEATURE_SETS": "('F1', 'F2', 'F3', 'F4')",
+    "PRIMARY_FEATURE_SET": "F3",
+    "OUTCOME_CAP": "250000",
+    "CV_FOLDS": "5",
+    "CV_REPEATS": "3",
+    "FAIRNESS_GROUPS": "{'Income below 200% FPL': ('povcat', 'le', 3), 'Hispanic': ('race', 'eq', 1), 'Non-Hispanic Black': ('race', 'eq', 3), 'Non-Hispanic Asian': ('race', 'eq', 4), 'Needs ADL or IADL help': ('any_function_help', 'eq', 1), 'Mental health condition': ('any_mbd', 'eq', 1), 'Age 65 and over': ('age', 'ge', 65), 'Uninsured all year': ('inscov', 'eq', 3)}",
+    "MIN_GROUP_N": "100",
+    "FAIR_LAMBDAS": "(0.0, 0.1, 0.3, 1.0, 3.0, 10.0, 30.0, 100.0)",
+    "FAIR_TARGET_GROUPS": "('Income below 200% FPL', 'Mental health condition', 'Needs ADL or IADL help')",
+    "CODING_SHARES": "(0.05, 0.1, 0.25)",
+    "CODING_ADDED": "(1, 2)",
+    "CODING_POOLS": "('prevalence', 'chronic')",
+    "FIG_DPI": "300",
+    "PALETTE": "{'ink': '#1A1A1A', 'muted': '#7F8C8D', 'rule': '#D5D8DC', 'linear': '#1B6CA8', 'glm': '#117A65', 'gbm': '#B03A2E', 'nn': '#7D3C98', 'fair': '#B7950B'}"
+  },
+  "versions": {
+    "python": "3.14.6",
+    "numpy": "2.5.3",
+    "pandas": "3.0.5",
+    "scipy": "1.18.1",
+    "sklearn": "1.9.1",
+    "lightgbm": "4.7.0",
+    "torch": "2.14.0",
+    "shap": "0.52.0"
+  },
+  "timings": [
+    {
+      "step": "Prospective dataset from the MEPS panels",
+      "seconds": 2.4
+    },
+    {
+      "step": "Sample description",
+      "seconds": 2.6
+    },
+    {
+      "step": "RQ1: accuracy with survey-aware cross-validation",
+      "seconds": 1131.1
+    },
+    {
+      "step": "RQ2: group compensation and the fairness frontier",
+      "seconds": 228.6
+    },
+    {
+      "step": "RQ3: drivers and their stability",
+      "seconds": 72.7
+    },
+    {
+      "step": "RQ4: coding sensitivity",
+      "seconds": 149.7
+    },
+    {
+      "step": "Robustness",
+      "seconds": 414.9
+    },
+    {
+      "step": "Figures",
+      "seconds": 1.4
+    },
+    {
+      "step": "Calculator payload",
+      "seconds": 0.2
+    }
+  ]
+}

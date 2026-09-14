@@ -1,0 +1,285 @@
+<title>The Payment Formula</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Serif:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Sans+Condensed:wght@500;600&display=swap">
+<style>
+:root{
+  --paper:#f7f6ef; --band:#e3eedd; --band-2:#d4e5cb; --ink:#1d2a24; --soft:#4f5d55;
+  --rule:#b9c7b2; --hole:#ece9dc; --amber:#b8621b; --teal:#1f6f63; --plum:#6b3d6e;
+  --red:#a33a2a; --blue:#2c5d8a;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  --serif:"IBM Plex Serif",Georgia,serif;
+  --cond:"IBM Plex Sans Condensed","Arial Narrow",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--serif);
+  font-size:16px;line-height:1.55;padding-inline:max(16px,calc((100vw - 1060px)/2))}
+.sheet{position:relative;padding:0 46px;margin:0 auto;
+  background:repeating-linear-gradient(to bottom,var(--paper) 0 2.4em,var(--band) 2.4em 4.8em)}
+.sheet::before,.sheet::after{content:"";position:absolute;top:0;bottom:0;width:22px;
+  background:radial-gradient(circle at 11px 16px,var(--hole) 5px,transparent 5.5px) 0 0/22px 32px repeat-y;
+  border-inline:1px dashed var(--rule)}
+.sheet::before{left:0}.sheet::after{right:0}
+@media (max-width:640px){.sheet{padding:0 28px}.sheet::before,.sheet::after{width:14px;
+  background-size:14px 24px;background-image:radial-gradient(circle at 7px 12px,var(--hole) 3px,transparent 3.5px)}}
+header{padding:48px 0 24px;border-bottom:2px solid var(--ink)}
+.tag{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--soft)}
+h1{font-family:var(--cond);font-weight:600;font-size:clamp(34px,6vw,58px);line-height:1;margin:.25em 0 .2em;letter-spacing:-.01em}
+.lede{font-size:clamp(17px,2.3vw,20px);max-width:44em;margin:.6em 0 0}
+section{padding:34px 0;border-bottom:1px solid var(--rule)}
+h2{font-family:var(--cond);font-size:clamp(22px,3.4vw,30px);margin:0 0 .3em;font-weight:600}
+h2 .n{font-family:var(--mono);font-size:.55em;color:var(--amber);margin-right:.6em;vertical-align:.25em}
+.note{color:var(--soft);font-size:14px;max-width:46em}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:22px}
+.fact{background:var(--paper);border:1px solid var(--rule);padding:12px 14px}
+.fact b{display:block;font-family:var(--mono);font-size:clamp(20px,3vw,26px);font-weight:600}
+.fact span{font-size:13px;color:var(--soft)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}
+.chip{font-family:var(--mono);font-size:13px;border:1px solid var(--ink);background:var(--paper);
+  color:var(--ink);padding:6px 10px;cursor:pointer;border-radius:0}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.chip:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+.big{font-family:var(--serif);font-size:clamp(18px,2.6vw,22px);max-width:40em;margin:12px 0 4px}
+.big strong{font-family:var(--mono);color:var(--red)}
+.chart{width:100%;overflow-x:auto;background:var(--paper);border:1px solid var(--rule);padding:10px;margin-top:10px}
+svg{display:block;max-width:100%;height:auto}
+svg text{font-family:var(--mono);font-size:12px;fill:var(--ink)}
+.row{display:flex;flex-wrap:wrap;gap:18px;align-items:center;margin:12px 0}
+label{font-family:var(--mono);font-size:13px}
+input[type=range]{width:min(420px,100%);accent-color:var(--amber)}
+select{font-family:var(--mono);font-size:13px;padding:5px;background:var(--paper);border:1px solid var(--ink);color:var(--ink)}
+table{border-collapse:collapse;width:100%;font-family:var(--mono);font-size:13px;background:var(--paper)}
+th,td{padding:6px 8px;border-bottom:1px solid var(--rule);text-align:right}
+th:first-child,td:first-child{text-align:left}
+thead th{border-bottom:2px solid var(--ink);font-weight:600}
+.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-top:10px}
+.readout div{border-left:4px solid var(--teal);background:var(--paper);padding:8px 10px}
+.readout b{display:block;font-family:var(--mono);font-size:20px}
+.readout span{font-size:12px;color:var(--soft)}
+footer{padding:28px 0 48px;font-size:13px;color:var(--soft)}
+footer a{color:var(--ink)}
+</style>
+
+<div class="sheet">
+<header>
+  <div class="tag">Risk adjustment · public explorer</div>
+  <h1>The Payment Formula</h1>
+  <p class="lede">Health plans in Medicare Advantage and the ACA marketplaces are paid by a formula that predicts how much each enrollee will cost. When the formula guesses low for a group of people, plans lose money on them. This page shows how different formulas guess, who they shortchange, what it costs to fix, and how more intensive diagnosis coding moves the money.</p>
+  <div class="facts" id="facts"></div>
+</header>
+
+<section id="s-accuracy">
+  <h2><span class="n">01</span>How well each formula predicts next year's spending</h2>
+  <p class="note">Each model saw one year of a person's record and predicted the next year's medical spending for people it had never seen. R² is the share of the variation in spending the model explains; a flexible model explains more, but none explains most of it, because much of next year's spending is genuinely unpredictable.</p>
+  <div class="chart" id="acc-chart"></div>
+</section>
+
+<section id="s-groups">
+  <h2><span class="n">02</span>Who gets shortchanged</h2>
+  <p class="note">Net compensation is what the formula pays for an average member of a group minus what that group actually costs, in dollars per person per year. Below zero, the plan loses money on the group and has a reason to avoid enrolling them.</p>
+  <div class="chips" id="group-chips" role="group" aria-label="Choose a group"></div>
+  <p class="big" id="group-sentence"></p>
+  <div class="chart" id="group-chart"></div>
+</section>
+
+<section id="s-frontier">
+  <h2><span class="n">03</span>The price of closing the gap</h2>
+  <p class="note">A fairness penalty pushes the formula to pay each target group what it costs, at some loss of overall accuracy. Move the slider to strengthen the penalty and watch both numbers.</p>
+  <div class="row">
+    <label for="method">Formula</label>
+    <select id="method"></select>
+    <label for="lam">Penalty strength</label>
+    <input type="range" id="lam" min="0" max="1" step="1" value="0">
+    <span id="lam-label" class="tag"></span>
+  </div>
+  <div class="readout" id="frontier-readout"></div>
+  <div class="chart" id="frontier-chart"></div>
+</section>
+
+<section id="s-coding">
+  <h2><span class="n">04</span>The coding game</h2>
+  <p class="note">Some diagnoses are recorded more thoroughly by some plans than others. Here a share of people gain diagnosis codes they did not have, with nothing else about their care changed. The table shows how much each formula raises its payment in response.</p>
+  <div class="row">
+    <label for="share">People affected</label>
+    <select id="share"></select>
+    <label for="codes">Codes added</label>
+    <select id="codes"></select>
+    <label for="pool">Which codes</label>
+    <select id="pool"><option value="chronic">Chronic, payment-relevant</option><option value="prevalence">Any, by how common</option></select>
+  </div>
+  <div class="chart" id="coding-table"></div>
+</section>
+
+<section id="s-drivers">
+  <h2><span class="n">05</span>What the boosted model listens to</h2>
+  <p class="note">The average size of each feature's contribution to a person's prediction in the most accurate tree model, measured with SHAP values on people held out from training.</p>
+  <div class="chart" id="drivers-chart"></div>
+</section>
+
+<footer id="foot"></footer>
+</div>
+
+<script id="model-data" type="application/json">__MODEL_DATA__</script>
+<script>
+(function(){
+const D = JSON.parse(document.getElementById("model-data").textContent);
+const $ = id => document.getElementById(id);
+const money = v => (v < 0 ? "-$" : "$") + Math.abs(Math.round(v)).toLocaleString("en-US");
+const NS = "http://www.w3.org/2000/svg";
+function el(tag, attrs, parent, text){
+  const e = document.createElementNS(NS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  if (text !== undefined) e.textContent = text;
+  if (parent) parent.appendChild(e);
+  return e;
+}
+const COLOR = {"Linear":"#2c5d8a","Fair linear":"#b8621b","Actuarial GLM":"#1f6f63",
+  "Boosted trees":"#a33a2a","Trees":"#a33a2a","Neural network":"#6b3d6e"};
+
+/* facts */
+const F = D.facts;
+[[money(F.mean_spend), "average spending per person, next year"],
+ [money(F.median_spend), "median: half spend less than this"],
+ [F.top5_share + "%", "of all spending comes from the top 5% of people"],
+ [F.zero_share + "%", "spend nothing at all in a year"]].forEach(([b, s]) => {
+  const d = document.createElement("div"); d.className = "fact";
+  d.innerHTML = "<b>" + b + "</b><span>" + s + "</span>"; $("facts").appendChild(d);
+});
+
+/* 01 accuracy */
+(function(){
+  const rows = [...D.accuracy].sort((a, b) => b.r2 - a.r2);
+  const W = 900, rowH = 30, left = 230, top = 24, H = top + rows.length * rowH + 30;
+  const max = Math.max(...rows.map(r => r.r2_hi)) * 1.1;
+  const x = v => left + (W - left - 30) * v / max;
+  const svg = el("svg", {viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "R-squared by model"});
+  for (let t = 0; t <= max + 1e-9; t += 0.05){
+    el("line", {x1: x(t), x2: x(t), y1: top - 8, y2: H - 26, stroke: "#b9c7b2"}, svg);
+    el("text", {x: x(t), y: H - 8, "text-anchor": "middle"}, svg, t.toFixed(2));
+  }
+  rows.forEach((r, i) => {
+    const y = top + i * rowH + rowH / 2, c = COLOR[r.family] || "#1d2a24";
+    el("text", {x: left - 10, y: y + 4, "text-anchor": "end"}, svg, r.model);
+    el("line", {x1: x(r.r2_lo), x2: x(r.r2_hi), y1: y, y2: y, stroke: c, "stroke-width": 3}, svg);
+    el("rect", {x: left, y: y - 7, width: Math.max(0, x(r.r2) - left), height: 14, fill: c, opacity: .22}, svg);
+    el("circle", {cx: x(r.r2), cy: y, r: 5, fill: c}, svg);
+    el("text", {x: x(r.r2_hi) + 8, y: y + 4}, svg, r.r2.toFixed(3));
+  });
+  $("acc-chart").appendChild(svg);
+})();
+
+/* 02 groups */
+(function(){
+  const models = [...new Set(D.compensation.map(r => r.model))];
+  let current = D.target_groups[0] || D.groups[0];
+  D.groups.forEach(g => {
+    const b = document.createElement("button");
+    b.className = "chip"; b.textContent = g; b.setAttribute("aria-pressed", g === current);
+    b.onclick = () => { current = g; [...$("group-chips").children].forEach(c => c.setAttribute("aria-pressed", c.textContent === g)); draw(); };
+    $("group-chips").appendChild(b);
+  });
+  function draw(){
+    const rows = models.map(m => D.compensation.find(r => r.model === m && r.group === current)).filter(Boolean);
+    const worst = rows.reduce((a, b) => (a.nc < b.nc ? a : b));
+    const cost = rows[0] ? rows[0].mean_cost : null;
+    $("group-sentence").innerHTML = worst.nc < 0
+      ? `For the average person in <em>${current.toLowerCase()}</em>, whose care costs about ${money(cost)} a year, the ${worst.model} formula pays <strong>${money(Math.abs(worst.nc))} too little</strong>.`
+      : `No formula here underpays <em>${current.toLowerCase()}</em> on average; the largest gap is ${money(worst.nc)}.`;
+    const W = 900, rowH = 30, left = 230, top = 20, H = top + rows.length * rowH + 34;
+    const lim = Math.max(...rows.map(r => Math.max(Math.abs(r.lo), Math.abs(r.hi)))) * 1.1 || 1;
+    const x = v => left + (W - left - 30) * (v + lim) / (2 * lim);
+    const svg = el("svg", {viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Net compensation by model"});
+    el("line", {x1: x(0), x2: x(0), y1: 6, y2: H - 26, stroke: "#1d2a24", "stroke-width": 1.5}, svg);
+    [-lim, -lim / 2, lim / 2, lim].forEach(t => el("text", {x: x(t), y: H - 8, "text-anchor": "middle"}, svg, money(t)));
+    rows.forEach((r, i) => {
+      const y = top + i * rowH + rowH / 2, c = r.nc < 0 ? "#a33a2a" : "#1f6f63";
+      el("text", {x: left - 10, y: y + 4, "text-anchor": "end"}, svg, r.model);
+      el("rect", {x: Math.min(x(0), x(r.nc)), y: y - 8, width: Math.abs(x(r.nc) - x(0)), height: 16, fill: c, opacity: .75}, svg);
+      el("line", {x1: x(r.lo), x2: x(r.hi), y1: y, y2: y, stroke: "#1d2a24", "stroke-width": 1.2}, svg);
+      el("text", {x: r.nc < 0 ? x(r.lo) - 6 : x(r.hi) + 6, y: y + 4, "text-anchor": r.nc < 0 ? "end" : "start"}, svg, money(r.nc));
+    });
+    $("group-chart").replaceChildren(svg);
+  }
+  draw();
+})();
+
+/* 03 frontier */
+(function(){
+  const methods = [...new Set(D.frontier.map(r => r.method.replace(", constrained", "")))].filter(m => D.frontier.some(r => r.method === m));
+  methods.forEach(m => { const o = document.createElement("option"); o.value = m; o.textContent = m; $("method").appendChild(o); });
+  function path(){
+    const m = $("method").value;
+    const pts = D.frontier.filter(r => r.method === m).sort((a, b) => a.lambda - b.lambda);
+    const cons = D.frontier.find(r => r.method === m + ", constrained" || (m === "Penalized WLS" && r.method === "Constrained WLS"));
+    if (cons) pts.push(cons);
+    return pts;
+  }
+  function draw(){
+    const pts = path();
+    $("lam").max = pts.length - 1;
+    const i = Math.min(+$("lam").value, pts.length - 1), p = pts[i];
+    $("lam-label").textContent = p.lambda === null ? "fully constrained" : (p.lambda === 0 ? "no penalty" : "penalty " + p.lambda);
+    const base = pts[0];
+    const cells = [[p.r2.toFixed(3), "accuracy (R²)", base.r2], [money(p.max_gap), "largest gap for a target group", null]];
+    D.target_groups.forEach(g => { if (p.nc[g] !== undefined) cells.push([money(p.nc[g]), g, null]); });
+    $("frontier-readout").innerHTML = cells.map(([b, s]) => `<div><b>${b}</b><span>${s}</span></div>`).join("");
+    const W = 900, H = 320, L = 70, B = 44, T = 16, R = 20;
+    const xs = pts.map(q => q.max_gap), ys = pts.map(q => q.r2);
+    const x0 = 0, x1 = Math.max(...xs) * 1.08 || 1, y0 = Math.min(...ys) * 0.96, y1 = Math.max(...ys) * 1.02;
+    const X = v => L + (W - L - R) * (v - x0) / (x1 - x0), Y = v => H - B - (H - B - T) * (v - y0) / (y1 - y0);
+    const svg = el("svg", {viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Accuracy against largest group gap"});
+    el("line", {x1: L, x2: W - R, y1: H - B, y2: H - B, stroke: "#1d2a24"}, svg);
+    el("line", {x1: L, x2: L, y1: T, y2: H - B, stroke: "#1d2a24"}, svg);
+    el("text", {x: (L + W) / 2, y: H - 8, "text-anchor": "middle"}, svg, "largest gap for a target group ($ per person-year)");
+    el("text", {x: 14, y: T + 10}, svg, "R²");
+    [x0, (x0 + x1) / 2, x1].forEach(t => el("text", {x: X(t), y: H - B + 18, "text-anchor": "middle"}, svg, money(t)));
+    [y0, (y0 + y1) / 2, y1].forEach(t => el("text", {x: L - 8, y: Y(t) + 4, "text-anchor": "end"}, svg, t.toFixed(3)));
+    el("polyline", {points: pts.map(q => X(q.max_gap) + "," + Y(q.r2)).join(" "), fill: "none", stroke: "#b9c7b2", "stroke-width": 2}, svg);
+    pts.forEach((q, j) => el("circle", {cx: X(q.max_gap), cy: Y(q.r2), r: j === i ? 8 : 4, fill: j === i ? "#b8621b" : "#1f6f63"}, svg));
+    $("frontier-chart").replaceChildren(svg);
+  }
+  $("method").onchange = () => { $("lam").value = 0; draw(); };
+  $("lam").oninput = draw;
+  draw();
+})();
+
+/* 04 coding */
+(function(){
+  const shares = [...new Set(D.coding.map(r => r.share))].sort((a, b) => a - b);
+  const codes = [...new Set(D.coding.map(r => r.codes))].sort();
+  shares.forEach(s => { const o = document.createElement("option"); o.value = s; o.textContent = Math.round(s * 100) + "% of people"; $("share").appendChild(o); });
+  codes.forEach(c => { const o = document.createElement("option"); o.value = c; o.textContent = c + (c > 1 ? " codes" : " code"); $("codes").appendChild(o); });
+  $("share").value = shares.includes(0.1) ? 0.1 : shares[0];
+  function draw(){
+    const s = +$("share").value, c = +$("codes").value, p = $("pool").value;
+    const rows = D.coding.filter(r => r.share === s && r.codes === c && r.pool === p).sort((a, b) => b.per_code - a.per_code);
+    const max = Math.max(...rows.map(r => r.per_code), 1);
+    $("coding-table").innerHTML = "<table><thead><tr><th>Formula</th><th>Extra payment per added code</th><th></th><th>Rise in total payments</th></tr></thead><tbody>" +
+      rows.map(r => `<tr><td>${r.model}</td><td>${money(r.per_code)}</td><td style="width:34%"><div style="height:12px;background:#b8621b;width:${Math.max(0, 100 * r.per_code / max)}%"></div></td><td>${r.pct_rise.toFixed(2)}%</td></tr>`).join("") +
+      "</tbody></table>";
+  }
+  ["share", "codes", "pool"].forEach(id => $(id).onchange = draw);
+  draw();
+})();
+
+/* 05 drivers */
+(function(){
+  const rows = D.drivers.slice(0, 12);
+  const W = 900, rowH = 28, left = 360, top = 10, H = top + rows.length * rowH + 30;
+  const max = Math.max(...rows.map(r => r.shap + (r.sd || 0))) * 1.05;
+  const x = v => left + (W - left - 70) * v / max;
+  const svg = el("svg", {viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Top drivers"});
+  rows.forEach((r, i) => {
+    const y = top + i * rowH + rowH / 2;
+    el("text", {x: left - 10, y: y + 4, "text-anchor": "end"}, svg, r.label.length > 44 ? r.label.slice(0, 43) + "…" : r.label);
+    el("rect", {x: left, y: y - 8, width: x(r.shap) - left, height: 16, fill: "#1f6f63", opacity: .8}, svg);
+    el("text", {x: x(r.shap) + 6, y: y + 4}, svg, money(r.shap));
+  });
+  $("drivers-chart").appendChild(svg);
+})();
+
+$("foot").innerHTML = `Data: ${D.meta.source}; ${D.meta.persons.toLocaleString("en-US")} people representing ${D.meta.population_millions} million a year; ${D.meta.dollars}. ` +
+  `From the paper <em>${D.meta.paper}</em> by ${D.meta.author}. Code and methods: <a href="${D.meta.repository}">${D.meta.repository.replace("https://", "")}</a>. ` +
+  `Figures are survey-weighted, out-of-sample estimates. This page runs entirely in your browser and sends nothing anywhere. Updated ${D.meta.generated}.`;
+})();
+</script>

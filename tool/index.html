@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="An interactive explorer of how health-plan payment formulas predict medical spending, which groups they pay too little for, what fairness costs, and how they respond to more intensive diagnosis coding, built on the Medical Expenditure Panel Survey.">
+<meta name="author" content="Oluwatosin Dorcas Babalola">
+<meta property="og:title" content="The Payment Formula">
+<meta property="og:description" content="Who health-plan payment formulas underpay, what it costs to fix, and how coding moves the money.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%A7%AE%3C/text%3E%3C/svg%3E">
+<style>
+  html{-webkit-text-size-adjust:100%}
+  img{max-width:100%}
+  [hidden]{display:none!important}
+</style>
+<title>The Payment Formula</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Serif:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Sans+Condensed:wght@500;600&display=swap">
+<style>
+:root{
+  --paper:#f7f6ef; --band:#e3eedd; --band-2:#d4e5cb; --ink:#1d2a24; --soft:#4f5d55;
+  --rule:#b9c7b2; --hole:#ece9dc; --amber:#b8621b; --teal:#1f6f63; --plum:#6b3d6e;
+  --red:#a33a2a; --blue:#2c5d8a;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  --serif:"IBM Plex Serif",Georgia,serif;
+  --cond:"IBM Plex Sans Condensed","Arial Narrow",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--serif);
+  font-size:16px;line-height:1.55;padding-inline:max(16px,calc((100vw - 1060px)/2))}
+.sheet{position:relative;padding:0 46px;margin:0 auto;
+  background:repeating-linear-gradient(to bottom,var(--paper) 0 2.4em,var(--band) 2.4em 4.8em)}
+.sheet::before,.sheet::after{content:"";position:absolute;top:0;bottom:0;width:22px;
+  background:radial-gradient(circle at 11px 16px,var(--hole) 5px,transparent 5.5px) 0 0/22px 32px repeat-y;
+  border-inline:1px dashed var(--rule)}
+.sheet::before{left:0}.sheet::after{right:0}
+@media (max-width:640px){.sheet{padding:0 28px}.sheet::before,.sheet::after{width:14px;
+  background-size:14px 24px;background-image:radial-gradient(circle at 7px 12px,var(--hole) 3px,transparent 3.5px)}}
+header{padding:48px 0 24px;border-bottom:2px solid var(--ink)}
+.tag{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--soft)}
+h1{font-family:var(--cond);font-weight:600;font-size:clamp(34px,6vw,58px);line-height:1;margin:.25em 0 .2em;letter-spacing:-.01em}
+.lede{font-size:clamp(17px,2.3vw,20px);max-width:44em;margin:.6em 0 0}
+section{padding:34px 0;border-bottom:1px solid var(--rule)}
+h2{font-family:var(--cond);font-size:clamp(22px,3.4vw,30px);margin:0 0 .3em;font-weight:600}
+h2 .n{font-family:var(--mono);font-size:.55em;color:var(--amber);margin-right:.6em;vertical-align:.25em}
+.note{color:var(--soft);font-size:14px;max-width:46em}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:22px}
+.fact{background:var(--paper);border:1px solid var(--rule);padding:12px 14px}
+.fact b{display:block;font-family:var(--mono);font-size:clamp(20px,3vw,26px);font-weight:600}
+.fact span{font-size:13px;color:var(--soft)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}
+.chip{font-family:var(--mono);font-size:13px;border:1px solid var(--ink);background:var(--paper);
+  color:var(--ink);padding:6px 10px;cursor:pointer;border-radius:0}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.chip:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+.big{font-family:var(--serif);font-size:clamp(18px,2.6vw,22px);max-width:40em;margin:12px 0 4px}
+.big strong{font-family:var(--mono);color:var(--red)}
+.chart{width:100%;overflow-x:auto;background:var(--paper);border:1px solid var(--rule);padding:10px;margin-top:10px}
+svg{display:block;max-width:100%;height:auto}
+svg text{font-family:var(--mono);font-size:12px;fill:var(--ink)}
+.row{display:flex;flex-wrap:wrap;gap:18px;align-items:center;margin:12px 0}
+label{font-family:var(--mono);font-size:13px}
+input[type=range]{width:min(420px,100%);accent-color:var(--amber)}
+select{font-family:var(--mono);font-size:13px;padding:5px;background:var(--paper);border:1px solid var(--ink);color:var(--ink)}
+table{border-collapse:collapse;width:100%;font-family:var(--mono);font-size:13px;background:var(--paper)}
+th,td{padding:6px 8px;border-bottom:1px solid var(--rule);text-align:right}
+th:first-child,td:first-child{text-align:left}
+thead th{border-bottom:2px solid var(--ink);font-weight:600}
+.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-top:10px}
+.readout div{border-left:4px solid var(--teal);background:var(--paper);padding:8px 10px}
+.readout b{display:block;font-family:var(--mono);font-size:20px}
+.readout span{font-size:12px;color:var(--soft)}
+footer{padding:28px 0 48px;font-size:13px;color:var(--soft)}
+footer a{color:var(--ink)}
+</style>
+
+<div class="sheet">
+</head>
+<body>
+<header>
+  <div class="tag">Risk adjustment · public explorer</div>
+  <h1>The Payment Formula</h1>
+  <p class="lede">Health plans in Medicare Advantage and the ACA marketplaces are paid by a formula that predicts how much each enrollee will cost. When the formula guesses low for a group of people, plans lose money on them. This page shows how different formulas guess, who they shortchange, what it costs to fix, and how more intensive diagnosis coding moves the money.</p>
+  <div class="facts" id="facts"></div>
+</header>
+
+<section id="s-accuracy">
+  <h2><span class="n">01</span>How well each formula predicts next year's spending</h2>
+  <p class="note">Each model saw one year of a person's record and predicted the next year's medical spending for people it had never seen. R² is the share of the variation in spending the model explains; a flexible model explains more, but none explains most of it, because much of next year's spending is genuinely unpredictable.</p>
+  <div class="chart" id="acc-chart"></div>
+</section>
+
+<section id="s-groups">
+  <h2><span class="n">02</span>Who gets shortchanged</h2>
+  <p class="note">Net compensation is what the formula pays for an average member of a group minus what that group actually costs, in dollars per person per year. Below zero, the plan loses money on the group and has a reason to avoid enrolling them.</p>
+  <div class="chips" id="group-chips" role="group" aria-label="Choose a group"></div>
+  <p class="big" id="group-sentence"></p>
+  <div class="chart" id="group-chart"></div>
+</section>
+
+<section id="s-frontier">
+  <h2><span class="n">03</span>The price of closing the gap</h2>
+  <p class="note">A fairness penalty pushes the formula to pay each target group what it costs, at some loss of overall accuracy. Move the slider to strengthen the penalty and watch both numbers.</p>
+  <div class="row">
+    <label for="method">Formula</label>
+    <select id="method"></select>
+    <label for="lam">Penalty strength</label>
+    <input type="range" id="lam" min="0" max="1" step="1" value="0">
+    <span id="lam-label" class="tag"></span>
+  </div>
+  <div class="readout" id="frontier-readout"></div>
+  <div class="chart" id="frontier-chart"></div>
+</section>
+
+<section id="s-coding">
+  <h2><span class="n">04</span>The coding game</h2>
+  <p class="note">Some diagnoses are recorded more thoroughly by some plans than others. Here a share of people gain diagnosis codes they did not have, with nothing else about their care changed. The table shows how much each formula raises its payment in response.</p>
+  <div class="row">
+    <label for="share">People affected</label>
+    <select id="share"></select>
+    <label for="codes">Codes added</label>
+    <select id="codes"></select>
+    <label for="pool">Which codes</label>
+    <select id="pool"><option value="chronic">Chronic, payment-relevant</option><option value="prevalence">Any, by how common</option></select>
+  </div>
+  <div class="chart" id="coding-table"></div>
+</section>
+
+<section id="s-drivers">
+  <h2><span class="n">05</span>What the boosted model listens to</h2>
+  <p class="note">The average size of each feature's contribution to a person's prediction in the most accurate tree model, measured with SHAP values on people held out from training.</p>
+  <div class="chart" id="drivers-chart"></div>
+</section>
+
+<footer id="foot"></footer>
+</div>
+
+<script id="model-data" type="application/json">{"meta":{"source":"Medical Expenditure Panel Survey, two-year longitudinal panels 23 to 27 (2018-2019 through 2022-2023)","generated":"2026-09-14","persons":43568,"population_millions":324.4,"dollars":"2024 dollars, total spending from all payers","paper":"Interpretable and Fair Machine Learning for Health-Cost Prediction and Risk Adjustment","author":"Oluwatosin Dorcas Babalola","repository":"https://github.com/tosin-babs/fair-ml-health-risk-adjustment"},"facts":{"mean_spend":7538.0,"median_spend":1486.0,"zero_share":15.0,"top5_share":50.0},"accuracy":[{"model":"WLS","family":"Linear","r2":0.1247,"r2_lo":0.1005,"r2_hi":0.1577,"cpm":0.1508,"top10":0.4379},{"model":"Tweedie GLM","family":"Actuarial GLM","r2":0.1346,"r2_lo":0.1037,"r2_hi":0.1796,"cpm":0.2468,"top10":0.4707},{"model":"Two-part","family":"Actuarial GLM","r2":0.101,"r2_lo":0.0772,"r2_hi":0.134,"cpm":0.2167,"top10":0.4368},{"model":"Elastic net","family":"Linear","r2":0.1169,"r2_lo":0.0923,"r2_hi":0.1522,"cpm":0.1975,"top10":0.4239},{"model":"LightGBM (Tweedie)","family":"Boosted trees","r2":0.1954,"r2_lo":0.1606,"r2_hi":0.245,"cpm":0.2794,"top10":0.4834},{"model":"LightGBM (squared error)","family":"Boosted trees","r2":0.1966,"r2_lo":0.1652,"r2_hi":0.2397,"cpm":0.2676,"top10":0.477},{"model":"Random forest","family":"Trees","r2":0.1975,"r2_lo":0.167,"r2_hi":0.2406,"cpm":0.2702,"top10":0.4791},{"model":"Neural network","family":"Neural network","r2":0.1413,"r2_lo":0.1161,"r2_hi":0.1779,"cpm":0.2493,"top10":0.4436},{"model":"CANN","family":"Neural network","r2":0.1338,"r2_lo":0.1031,"r2_hi":0.1787,"cpm":0.2471,"top10":0.4705}],"groups":["Income below 200% FPL","Hispanic","Non-Hispanic Black","Non-Hispanic Asian","Needs ADL or IADL help","Mental health condition","Age 65 and over","Uninsured all year"],"target_groups":["Income below 200% FPL","Mental health condition","Needs ADL or IADL help"],"compensation":[{"model":"WLS","group":"Income below 200% FPL","nc":-37.0,"lo":-451.0,"hi":288.0,"pr":0.995,"mean_cost":7396.0,"n":15198},{"model":"WLS","group":"Hispanic","nc":-207.0,"lo":-793.0,"hi":308.0,"pr":0.956,"mean_cost":4658.0,"n":9907},{"model":"WLS","group":"Non-Hispanic Black","nc":-274.0,"lo":-760.0,"hi":280.0,"pr":0.958,"mean_cost":6485.0,"n":6131},{"model":"WLS","group":"Non-Hispanic Asian","nc":105.0,"lo":-358.0,"hi":573.0,"pr":1.022,"mean_cost":4868.0,"n":2335},{"model":"WLS","group":"Needs ADL or IADL help","nc":-7794.0,"lo":-11613.0,"hi":-4584.0,"pr":0.739,"mean_cost":29881.0,"n":1488},{"model":"WLS","group":"Mental health condition","nc":199.0,"lo":-381.0,"hi":743.0,"pr":1.014,"mean_cost":13871.0,"n":7098},{"model":"WLS","group":"Age 65 and over","nc":-8.0,"lo":-624.0,"hi":473.0,"pr":1.0,"mean_cost":15741.0,"n":9173},{"model":"WLS","group":"Uninsured all year","nc":17.0,"lo":-413.0,"hi":475.0,"pr":1.008,"mean_cost":2219.0,"n":3106},{"model":"Tweedie GLM","group":"Income below 200% FPL","nc":187.0,"lo":-256.0,"hi":525.0,"pr":1.025,"mean_cost":7396.0,"n":15198},{"model":"Tweedie GLM","group":"Hispanic","nc":66.0,"lo":-522.0,"hi":597.0,"pr":1.014,"mean_cost":4658.0,"n":9907},{"model":"Tweedie GLM","group":"Non-Hispanic Black","nc":-68.0,"lo":-534.0,"hi":486.0,"pr":0.989,"mean_cost":6485.0,"n":6131},{"model":"Tweedie GLM","group":"Non-Hispanic Asian","nc":300.0,"lo":-123.0,"hi":706.0,"pr":1.062,"mean_cost":4868.0,"n":2335},{"model":"Tweedie GLM","group":"Needs ADL or IADL help","nc":-4949.0,"lo":-8810.0,"hi":-1852.0,"pr":0.834,"mean_cost":29881.0,"n":1488},{"model":"Tweedie GLM","group":"Mental health condition","nc":605.0,"lo":32.0,"hi":1226.0,"pr":1.044,"mean_cost":13871.0,"n":7098},{"model":"Tweedie GLM","group":"Age 65 and over","nc":538.0,"lo":-133.0,"hi":1097.0,"pr":1.034,"mean_cost":15741.0,"n":9173},{"model":"Tweedie GLM","group":"Uninsured all year","nc":533.0,"lo":97.0,"hi":979.0,"pr":1.24,"mean_cost":2219.0,"n":3106},{"model":"Two-part","group":"Income below 200% FPL","nc":386.0,"lo":-56.0,"hi":749.0,"pr":1.052,"mean_cost":7396.0,"n":15198},{"model":"Two-part","group":"Hispanic","nc":227.0,"lo":-343.0,"hi":773.0,"pr":1.049,"mean_cost":4658.0,"n":9907},{"model":"Two-part","group":"Non-Hispanic Black","nc":-16.0,"lo":-517.0,"hi":509.0,"pr":0.997,"mean_cost":6485.0,"n":6131},{"model":"Two-part","group":"Non-Hispanic Asian","nc":503.0,"lo":-16.0,"hi":971.0,"pr":1.103,"mean_cost":4868.0,"n":2335},{"model":"Two-part","group":"Needs ADL or IADL help","nc":-7177.0,"lo":-11342.0,"hi":-3747.0,"pr":0.76,"mean_cost":29881.0,"n":1488},{"model":"Two-part","group":"Mental health condition","nc":504.0,"lo":-101.0,"hi":1137.0,"pr":1.036,"mean_cost":13871.0,"n":7098},{"model":"Two-part","group":"Age 65 and over","nc":47.0,"lo":-630.0,"hi":610.0,"pr":1.003,"mean_cost":15741.0,"n":9173},{"model":"Two-part","group":"Uninsured all year","nc":846.0,"lo":408.0,"hi":1299.0,"pr":1.381,"mean_cost":2219.0,"n":3106},{"model":"Elastic net","group":"Income below 200% FPL","nc":101.0,"lo":-324.0,"hi":437.0,"pr":1.014,"mean_cost":7396.0,"n":15198},{"model":"Elastic net","group":"Hispanic","nc":-9.0,"lo":-592.0,"hi":512.0,"pr":0.998,"mean_cost":4658.0,"n":9907},{"model":"Elastic net","group":"Non-Hispanic Black","nc":-165.0,"lo":-658.0,"hi":382.0,"pr":0.974,"mean_cost":6485.0,"n":6131},{"model":"Elastic net","group":"Non-Hispanic Asian","nc":375.0,"lo":-125.0,"hi":826.0,"pr":1.077,"mean_cost":4868.0,"n":2335},{"model":"Elastic net","group":"Needs ADL or IADL help","nc":-9508.0,"lo":-13347.0,"hi":-6301.0,"pr":0.682,"mean_cost":29881.0,"n":1488},{"model":"Elastic net","group":"Mental health condition","nc":194.0,"lo":-395.0,"hi":764.0,"pr":1.014,"mean_cost":13871.0,"n":7098},{"model":"Elastic net","group":"Age 65 and over","nc":-213.0,"lo":-843.0,"hi":265.0,"pr":0.986,"mean_cost":15741.0,"n":9173},{"model":"Elastic net","group":"Uninsured all year","nc":238.0,"lo":-217.0,"hi":716.0,"pr":1.107,"mean_cost":2219.0,"n":3106},{"model":"LightGBM (Tweedie)","group":"Income below 200% FPL","nc":83.0,"lo":-311.0,"hi":404.0,"pr":1.011,"mean_cost":7396.0,"n":15198},{"model":"LightGBM (Tweedie)","group":"Hispanic","nc":124.0,"lo":-472.0,"hi":679.0,"pr":1.027,"mean_cost":4658.0,"n":9907},{"model":"LightGBM (Tweedie)","group":"Non-Hispanic Black","nc":-89.0,"lo":-550.0,"hi":437.0,"pr":0.986,"mean_cost":6485.0,"n":6131},{"model":"LightGBM (Tweedie)","group":"Non-Hispanic Asian","nc":189.0,"lo":-284.0,"hi":613.0,"pr":1.039,"mean_cost":4868.0,"n":2335},{"model":"LightGBM (Tweedie)","group":"Needs ADL or IADL help","nc":-5670.0,"lo":-9127.0,"hi":-2561.0,"pr":0.81,"mean_cost":29881.0,"n":1488},{"model":"LightGBM (Tweedie)","group":"Mental health condition","nc":433.0,"lo":-91.0,"hi":895.0,"pr":1.031,"mean_cost":13871.0,"n":7098},{"model":"LightGBM (Tweedie)","group":"Age 65 and over","nc":-357.0,"lo":-1014.0,"hi":97.0,"pr":0.977,"mean_cost":15741.0,"n":9173},{"model":"LightGBM (Tweedie)","group":"Uninsured all year","nc":657.0,"lo":215.0,"hi":1061.0,"pr":1.296,"mean_cost":2219.0,"n":3106},{"model":"LightGBM (squared error)","group":"Income below 200% FPL","nc":185.0,"lo":-214.0,"hi":491.0,"pr":1.025,"mean_cost":7396.0,"n":15198},{"model":"LightGBM (squared error)","group":"Hispanic","nc":374.0,"lo":-198.0,"hi":924.0,"pr":1.08,"mean_cost":4658.0,"n":9907},{"model":"LightGBM (squared error)","group":"Non-Hispanic Black","nc":62.0,"lo":-420.0,"hi":575.0,"pr":1.01,"mean_cost":6485.0,"n":6131},{"model":"LightGBM (squared error)","group":"Non-Hispanic Asian","nc":196.0,"lo":-216.0,"hi":638.0,"pr":1.04,"mean_cost":4868.0,"n":2335},{"model":"LightGBM (squared error)","group":"Needs ADL or IADL help","nc":-6256.0,"lo":-9811.0,"hi":-3269.0,"pr":0.791,"mean_cost":29881.0,"n":1488},{"model":"LightGBM (squared error)","group":"Mental health condition","nc":119.0,"lo":-429.0,"hi":612.0,"pr":1.009,"mean_cost":13871.0,"n":7098},{"model":"LightGBM (squared error)","group":"Age 65 and over","nc":-1023.0,"lo":-1654.0,"hi":-544.0,"pr":0.935,"mean_cost":15741.0,"n":9173},{"model":"LightGBM (squared error)","group":"Uninsured all year","nc":969.0,"lo":508.0,"hi":1379.0,"pr":1.436,"mean_cost":2219.0,"n":3106},{"model":"Random forest","group":"Income below 200% FPL","nc":145.0,"lo":-254.0,"hi":458.0,"pr":1.02,"mean_cost":7396.0,"n":15198},{"model":"Random forest","group":"Hispanic","nc":191.0,"lo":-396.0,"hi":730.0,"pr":1.041,"mean_cost":4658.0,"n":9907},{"model":"Random forest","group":"Non-Hispanic Black","nc":-37.0,"lo":-493.0,"hi":468.0,"pr":0.994,"mean_cost":6485.0,"n":6131},{"model":"Random forest","group":"Non-Hispanic Asian","nc":222.0,"lo":-225.0,"hi":658.0,"pr":1.046,"mean_cost":4868.0,"n":2335},{"model":"Random forest","group":"Needs ADL or IADL help","nc":-6529.0,"lo":-10037.0,"hi":-3466.0,"pr":0.781,"mean_cost":29881.0,"n":1488},{"model":"Random forest","group":"Mental health condition","nc":793.0,"lo":271.0,"hi":1276.0,"pr":1.057,"mean_cost":13871.0,"n":7098},{"model":"Random forest","group":"Age 65 and over","nc":-803.0,"lo":-1437.0,"hi":-332.0,"pr":0.949,"mean_cost":15741.0,"n":9173},{"model":"Random forest","group":"Uninsured all year","nc":698.0,"lo":270.0,"hi":1110.0,"pr":1.315,"mean_cost":2219.0,"n":3106},{"model":"Neural network","group":"Income below 200% FPL","nc":47.0,"lo":-396.0,"hi":379.0,"pr":1.006,"mean_cost":7396.0,"n":15198},{"model":"Neural network","group":"Hispanic","nc":-11.0,"lo":-574.0,"hi":508.0,"pr":0.998,"mean_cost":4658.0,"n":9907},{"model":"Neural network","group":"Non-Hispanic Black","nc":-213.0,"lo":-665.0,"hi":333.0,"pr":0.967,"mean_cost":6485.0,"n":6131},{"model":"Neural network","group":"Non-Hispanic Asian","nc":127.0,"lo":-300.0,"hi":539.0,"pr":1.026,"mean_cost":4868.0,"n":2335},{"model":"Neural network","group":"Needs ADL or IADL help","nc":-6754.0,"lo":-10672.0,"hi":-3424.0,"pr":0.774,"mean_cost":29881.0,"n":1488},{"model":"Neural network","group":"Mental health condition","nc":-160.0,"lo":-742.0,"hi":380.0,"pr":0.988,"mean_cost":13871.0,"n":7098},{"model":"Neural network","group":"Age 65 and over","nc":28.0,"lo":-592.0,"hi":478.0,"pr":1.002,"mean_cost":15741.0,"n":9173},{"model":"Neural network","group":"Uninsured all year","nc":551.0,"lo":63.0,"hi":1034.0,"pr":1.248,"mean_cost":2219.0,"n":3106},{"model":"CANN","group":"Income below 200% FPL","nc":201.0,"lo":-241.0,"hi":538.0,"pr":1.027,"mean_cost":7396.0,"n":15198},{"model":"CANN","group":"Hispanic","nc":51.0,"lo":-536.0,"hi":582.0,"pr":1.011,"mean_cost":4658.0,"n":9907},{"model":"CANN","group":"Non-Hispanic Black","nc":-72.0,"lo":-543.0,"hi":489.0,"pr":0.989,"mean_cost":6485.0,"n":6131},{"model":"CANN","group":"Non-Hispanic Asian","nc":282.0,"lo":-143.0,"hi":686.0,"pr":1.058,"mean_cost":4868.0,"n":2335},{"model":"CANN","group":"Needs ADL or IADL help","nc":-4770.0,"lo":-8648.0,"hi":-1630.0,"pr":0.84,"mean_cost":29881.0,"n":1488},{"model":"CANN","group":"Mental health condition","nc":658.0,"lo":87.0,"hi":1275.0,"pr":1.047,"mean_cost":13871.0,"n":7098},{"model":"CANN","group":"Age 65 and over","nc":627.0,"lo":-48.0,"hi":1189.0,"pr":1.04,"mean_cost":15741.0,"n":9173},{"model":"CANN","group":"Uninsured all year","nc":513.0,"lo":79.0,"hi":959.0,"pr":1.231,"mean_cost":2219.0,"n":3106}],"frontier":[{"method":"Penalized WLS","lambda":0.0,"r2":0.1236,"max_gap":7887.0,"nc":{"Income below 200% FPL":-43.0,"Hispanic":-215.0,"Non-Hispanic Black":-293.0,"Non-Hispanic Asian":97.0,"Needs ADL or IADL help":-7887.0,"Mental health condition":174.0,"Age 65 and over":15.0,"Uninsured all year":12.0}},{"method":"Penalized WLS","lambda":0.1,"r2":0.1198,"max_gap":4699.0,"nc":{"Income below 200% FPL":585.0,"Hispanic":-29.0,"Non-Hispanic Black":118.0,"Non-Hispanic Asian":290.0,"Needs ADL or IADL help":-4699.0,"Mental health condition":1054.0,"Age 65 and over":1653.0,"Uninsured all year":44.0}},{"method":"Penalized WLS","lambda":0.3,"r2":0.1136,"max_gap":2991.0,"nc":{"Income below 200% FPL":701.0,"Hispanic":-158.0,"Non-Hispanic Black":140.0,"Non-Hispanic Asian":216.0,"Needs ADL or IADL help":-2991.0,"Mental health condition":874.0,"Age 65 and over":2516.0,"Uninsured all year":-166.0}},{"method":"Penalized WLS","lambda":1.0,"r2":0.1055,"max_gap":1703.0,"nc":{"Income below 200% FPL":517.0,"Hispanic":-554.0,"Non-Hispanic Black":-118.0,"Non-Hispanic Asian":-85.0,"Needs ADL or IADL help":-1703.0,"Mental health condition":428.0,"Age 65 and over":3089.0,"Uninsured all year":-639.0}},{"method":"Penalized WLS","lambda":3.0,"r2":0.1002,"max_gap":1145.0,"nc":{"Income below 200% FPL":268.0,"Hispanic":-916.0,"Non-Hispanic Black":-410.0,"Non-Hispanic Asian":-376.0,"Needs ADL or IADL help":-1145.0,"Mental health condition":180.0,"Age 65 and over":3272.0,"Uninsured all year":-1051.0}},{"method":"Penalized WLS","lambda":10.0,"r2":0.0974,"max_gap":912.0,"nc":{"Income below 200% FPL":106.0,"Hispanic":-1132.0,"Non-Hispanic Black":-594.0,"Non-Hispanic Asian":-552.0,"Needs ADL or IADL help":-912.0,"Mental health condition":74.0,"Age 65 and over":3325.0,"Uninsured all year":-1293.0}},{"method":"Penalized WLS","lambda":30.0,"r2":0.0964,"max_gap":841.0,"nc":{"Income below 200% FPL":47.0,"Hispanic":-1209.0,"Non-Hispanic Black":-660.0,"Non-Hispanic Asian":-615.0,"Needs ADL or IADL help":-841.0,"Mental health condition":42.0,"Age 65 and over":3337.0,"Uninsured all year":-1379.0}},{"method":"Penalized WLS","lambda":100.0,"r2":0.0961,"max_gap":816.0,"nc":{"Income below 200% FPL":25.0,"Hispanic":-1238.0,"Non-Hispanic Black":-685.0,"Non-Hispanic Asian":-638.0,"Needs ADL or IADL help":-816.0,"Mental health condition":30.0,"Age 65 and over":3341.0,"Uninsured all year":-1411.0}},{"method":"Constrained WLS","lambda":null,"r2":0.0959,"max_gap":805.0,"nc":{"Income below 200% FPL":15.0,"Hispanic":-1250.0,"Non-Hispanic Black":-696.0,"Non-Hispanic Asian":-649.0,"Needs ADL or IADL help":-805.0,"Mental health condition":25.0,"Age 65 and over":3342.0,"Uninsured all year":-1425.0}},{"method":"Stacked LightGBM","lambda":0.0,"r2":0.1895,"max_gap":5142.0,"nc":{"Income below 200% FPL":71.0,"Hispanic":60.0,"Non-Hispanic Black":-91.0,"Non-Hispanic Asian":201.0,"Needs ADL or IADL help":-5142.0,"Mental health condition":165.0,"Age 65 and over":-18.0,"Uninsured all year":441.0}},{"method":"Stacked LightGBM","lambda":0.1,"r2":0.1882,"max_gap":2925.0,"nc":{"Income below 200% FPL":486.0,"Hispanic":186.0,"Non-Hispanic Black":182.0,"Non-Hispanic Asian":329.0,"Needs ADL or IADL help":-2925.0,"Mental health condition":769.0,"Age 65 and over":1080.0,"Uninsured all year":467.0}},{"method":"Stacked LightGBM","lambda":0.3,"r2":0.1857,"max_gap":1736.0,"nc":{"Income below 200% FPL":549.0,"Hispanic":91.0,"Non-Hispanic Black":184.0,"Non-Hispanic Asian":270.0,"Needs ADL or IADL help":-1736.0,"Mental health condition":654.0,"Age 65 and over":1648.0,"Uninsured all year":320.0}},{"method":"Stacked LightGBM","lambda":1.0,"r2":0.1823,"max_gap":838.0,"nc":{"Income below 200% FPL":400.0,"Hispanic":-193.0,"Non-Hispanic Black":-13.0,"Non-Hispanic Asian":50.0,"Needs ADL or IADL help":-838.0,"Mental health condition":361.0,"Age 65 and over":2013.0,"Uninsured all year":-17.0}},{"method":"Stacked LightGBM","lambda":3.0,"r2":0.18,"max_gap":448.0,"nc":{"Income below 200% FPL":213.0,"Hispanic":-454.0,"Non-Hispanic Black":-229.0,"Non-Hispanic Asian":-162.0,"Needs ADL or IADL help":-448.0,"Mental health condition":198.0,"Age 65 and over":2121.0,"Uninsured all year":-312.0}},{"method":"Stacked LightGBM","lambda":10.0,"r2":0.1787,"max_gap":286.0,"nc":{"Income below 200% FPL":94.0,"Hispanic":-609.0,"Non-Hispanic Black":-364.0,"Non-Hispanic Asian":-290.0,"Needs ADL or IADL help":-286.0,"Mental health condition":130.0,"Age 65 and over":2148.0,"Uninsured all year":-486.0}},{"method":"Stacked LightGBM","lambda":30.0,"r2":0.1783,"max_gap":236.0,"nc":{"Income below 200% FPL":50.0,"Hispanic":-664.0,"Non-Hispanic Black":-413.0,"Non-Hispanic Asian":-335.0,"Needs ADL or IADL help":-236.0,"Mental health condition":109.0,"Age 65 and over":2154.0,"Uninsured all year":-547.0}},{"method":"Stacked LightGBM","lambda":100.0,"r2":0.1781,"max_gap":218.0,"nc":{"Income below 200% FPL":34.0,"Hispanic":-685.0,"Non-Hispanic Black":-431.0,"Non-Hispanic Asian":-353.0,"Needs ADL or IADL help":-218.0,"Mental health condition":101.0,"Age 65 and over":2155.0,"Uninsured all year":-570.0}},{"method":"Stacked LightGBM, constrained","lambda":null,"r2":0.1781,"max_gap":210.0,"nc":{"Income below 200% FPL":27.0,"Hispanic":-694.0,"Non-Hispanic Black":-439.0,"Non-Hispanic Asian":-360.0,"Needs ADL or IADL help":-210.0,"Mental health condition":98.0,"Age 65 and over":2156.0,"Uninsured all year":-580.0}},{"method":"LightGBM, decile recalibration","lambda":0.0,"r2":0.1942,"max_gap":5647.0,"nc":{"Income below 200% FPL":110.0,"Hispanic":162.0,"Non-Hispanic Black":-42.0,"Non-Hispanic Asian":191.0,"Needs ADL or IADL help":-5647.0,"Mental health condition":555.0,"Age 65 and over":-387.0,"Uninsured all year":666.0}}],"coding":[{"model":"WLS","pool":"prevalence","share":0.05,"codes":1,"pct_rise":0.258,"per_code":394.0},{"model":"WLS","pool":"prevalence","share":0.05,"codes":2,"pct_rise":0.531,"per_code":408.0},{"model":"WLS","pool":"prevalence","share":0.1,"codes":1,"pct_rise":0.522,"per_code":395.0},{"model":"WLS","pool":"prevalence","share":0.1,"codes":2,"pct_rise":1.046,"per_code":393.0},{"model":"WLS","pool":"prevalence","share":0.25,"codes":1,"pct_rise":1.161,"per_code":351.0},{"model":"WLS","pool":"prevalence","share":0.25,"codes":2,"pct_rise":2.498,"per_code":376.0},{"model":"WLS","pool":"chronic","share":0.05,"codes":1,"pct_rise":0.798,"per_code":1216.0},{"model":"WLS","pool":"chronic","share":0.05,"codes":2,"pct_rise":1.756,"per_code":1351.0},{"model":"WLS","pool":"chronic","share":0.1,"codes":1,"pct_rise":1.706,"per_code":1292.0},{"model":"WLS","pool":"chronic","share":0.1,"codes":2,"pct_rise":3.64,"per_code":1368.0},{"model":"WLS","pool":"chronic","share":0.25,"codes":1,"pct_rise":4.245,"per_code":1283.0},{"model":"WLS","pool":"chronic","share":0.25,"codes":2,"pct_rise":8.99,"per_code":1352.0},{"model":"Tweedie GLM","pool":"prevalence","share":0.05,"codes":1,"pct_rise":0.245,"per_code":375.0},{"model":"Tweedie GLM","pool":"prevalence","share":0.05,"codes":2,"pct_rise":0.581,"per_code":449.0},{"model":"Tweedie GLM","pool":"prevalence","share":0.1,"codes":1,"pct_rise":0.582,"per_code":443.0},{"model":"Tweedie GLM","pool":"prevalence","share":0.1,"codes":2,"pct_rise":0.949,"per_code":358.0},{"model":"Tweedie GLM","pool":"prevalence","share":0.25,"codes":1,"pct_rise":1.19,"per_code":361.0},{"model":"Tweedie GLM","pool":"prevalence","share":0.25,"codes":2,"pct_rise":2.412,"per_code":364.0},{"model":"Tweedie GLM","pool":"chronic","share":0.05,"codes":1,"pct_rise":0.558,"per_code":854.0},{"model":"Tweedie GLM","pool":"chronic","share":0.05,"codes":2,"pct_rise":1.218,"per_code":942.0},{"model":"Tweedie GLM","pool":"chronic","share":0.1,"codes":1,"pct_rise":1.163,"per_code":885.0},{"model":"Tweedie GLM","pool":"chronic","share":0.1,"codes":2,"pct_rise":2.355,"per_code":889.0},{"model":"Tweedie GLM","pool":"chronic","share":0.25,"codes":1,"pct_rise":2.834,"per_code":861.0},{"model":"Tweedie GLM","pool":"chronic","share":0.25,"codes":2,"pct_rise":5.944,"per_code":898.0},{"model":"Two-part","pool":"prevalence","share":0.05,"codes":1,"pct_rise":0.529,"per_code":806.0},{"model":"Two-part","pool":"prevalence","share":0.05,"codes":2,"pct_rise":1.208,"per_code":929.0},{"model":"Two-part","pool":"prevalence","share":0.1,"codes":1,"pct_rise":1.092,"per_code":827.0},{"model":"Two-part","pool":"prevalence","share":0.1,"codes":2,"pct_rise":2.242,"per_code":842.0},{"model":"Two-part","pool":"prevalence","share":0.25,"codes":1,"pct_rise":2.657,"per_code":803.0},{"model":"Two-part","pool":"prevalence","share":0.25,"codes":2,"pct_rise":5.624,"per_code":846.0},{"model":"Two-part","pool":"chronic","share":0.05,"codes":1,"pct_rise":0.852,"per_code":1299.0},{"model":"Two-part","pool":"chronic","share":0.05,"codes":2,"pct_rise":1.9,"per_code":1463.0},{"model":"Two-part","pool":"chronic","share":0.1,"codes":1,"pct_rise":1.725,"per_code":1307.0},{"model":"Two-part","pool":"chronic","share":0.1,"codes":2,"pct_rise":3.729,"per_code":1402.0},{"model":"Two-part","pool":"chronic","share":0.25,"codes":1,"pct_rise":4.281,"per_code":1294.0},{"model":"Two-part","pool":"chronic","share":0.25,"codes":2,"pct_rise":9.257,"per_code":1393.0},{"model":"LightGBM (Tweedie)","pool":"prevalence","share":0.05,"codes":1,"pct_rise":0.397,"per_code":602.0},{"model":"LightGBM (Tweedie)","pool":"prevalence","share":0.05,"codes":2,"pct_rise":0.8,"per_code":612.0},{"model":"LightGBM (Tweedie)","pool":"prevalence","share":0.1,"codes":1,"pct_rise":0.811,"per_code":612.0},{"model":"LightGBM (Tweedie)","pool":"prevalence","share":0.1,"codes":2,"pct_rise":1.595,"per_code":596.0},{"model":"LightGBM (Tweedie)","pool":"prevalence","share":0.25,"codes":1,"pct_rise":1.96,"per_code":590.0},{"model":"LightGBM (Tweedie)","pool":"prevalence","share":0.25,"codes":2,"pct_rise":4.092,"per_code":612.0},{"model":"LightGBM (Tweedie)","pool":"chronic","share":0.05,"codes":1,"pct_rise":0.473,"per_code":718.0},{"model":"LightGBM (Tweedie)","pool":"chronic","share":0.05,"codes":2,"pct_rise":0.979,"per_code":750.0},{"model":"LightGBM (Tweedie)","pool":"chronic","share":0.1,"codes":1,"pct_rise":0.92,"per_code":693.0},{"model":"LightGBM (Tweedie)","pool":"chronic","share":0.1,"codes":2,"pct_rise":2.02,"per_code":755.0},{"model":"LightGBM (Tweedie)","pool":"chronic","share":0.25,"codes":1,"pct_rise":2.37,"per_code":713.0},{"model":"LightGBM (Tweedie)","pool":"chronic","share":0.25,"codes":2,"pct_rise":5.003,"per_code":749.0},{"model":"LightGBM (squared error)","pool":"prevalence","share":0.05,"codes":1,"pct_rise":0.466,"per_code":708.0},{"model":"LightGBM (squared error)","pool":"prevalence","share":0.05,"codes":2,"pct_rise":0.964,"per_code":739.0},{"model":"LightGBM (squared error)","pool":"prevalence","share":0.1,"codes":1,"pct_rise":0.954,"per_code":719.0},{"model":"LightGBM (squared error)","pool":"prevalence","share":0.1,"codes":2,"pct_rise":1.916,"per_code":717.0},{"model":"LightGBM (squared error)","pool":"prevalence","share":0.25,"codes":1,"pct_rise":2.255,"per_code":679.0},{"model":"LightGBM (squared error)","pool":"prevalence","share":0.25,"codes":2,"pct_rise":4.868,"per_code":729.0},{"model":"LightGBM (squared error)","pool":"chronic","share":0.05,"codes":1,"pct_rise":0.475,"per_code":721.0},{"model":"LightGBM (squared error)","pool":"chronic","share":0.05,"codes":2,"pct_rise":1.023,"per_code":784.0},{"model":"LightGBM (squared error)","pool":"chronic","share":0.1,"codes":1,"pct_rise":1.001,"per_code":755.0},{"model":"LightGBM (squared error)","pool":"chronic","share":0.1,"codes":2,"pct_rise":2.086,"per_code":781.0},{"model":"LightGBM (squared error)","pool":"chronic","share":0.25,"codes":1,"pct_rise":2.464,"per_code":742.0},{"model":"LightGBM (squared error)","pool":"chronic","share":0.25,"codes":2,"pct_rise":5.289,"per_code":792.0},{"model":"CANN","pool":"prevalence","share":0.05,"codes":1,"pct_rise":0.266,"per_code":408.0},{"model":"CANN","pool":"prevalence","share":0.05,"codes":2,"pct_rise":0.647,"per_code":501.0},{"model":"CANN","pool":"prevalence","share":0.1,"codes":1,"pct_rise":0.633,"per_code":482.0},{"model":"CANN","pool":"prevalence","share":0.1,"codes":2,"pct_rise":1.054,"per_code":398.0},{"model":"CANN","pool":"prevalence","share":0.25,"codes":1,"pct_rise":1.304,"per_code":396.0},{"model":"CANN","pool":"prevalence","share":0.25,"codes":2,"pct_rise":2.647,"per_code":400.0},{"model":"CANN","pool":"chronic","share":0.05,"codes":1,"pct_rise":0.588,"per_code":901.0},{"model":"CANN","pool":"chronic","share":0.05,"codes":2,"pct_rise":1.309,"per_code":1013.0},{"model":"CANN","pool":"chronic","share":0.1,"codes":1,"pct_rise":1.251,"per_code":953.0},{"model":"CANN","pool":"chronic","share":0.1,"codes":2,"pct_rise":2.519,"per_code":952.0},{"model":"CANN","pool":"chronic","share":0.25,"codes":1,"pct_rise":3.025,"per_code":920.0},{"model":"CANN","pool":"chronic","share":0.25,"codes":2,"pct_rise":6.356,"per_code":961.0},{"model":"Constrained WLS","pool":"prevalence","share":0.05,"codes":1,"pct_rise":0.273,"per_code":400.0},{"model":"Constrained WLS","pool":"prevalence","share":0.05,"codes":2,"pct_rise":0.508,"per_code":376.0},{"model":"Constrained WLS","pool":"prevalence","share":0.1,"codes":1,"pct_rise":0.457,"per_code":333.0},{"model":"Constrained WLS","pool":"prevalence","share":0.1,"codes":2,"pct_rise":1.062,"per_code":383.0},{"model":"Constrained WLS","pool":"prevalence","share":0.25,"codes":1,"pct_rise":0.963,"per_code":280.0},{"model":"Constrained WLS","pool":"prevalence","share":0.25,"codes":2,"pct_rise":2.375,"per_code":344.0},{"model":"Constrained WLS","pool":"chronic","share":0.05,"codes":1,"pct_rise":0.661,"per_code":970.0},{"model":"Constrained WLS","pool":"chronic","share":0.05,"codes":2,"pct_rise":1.642,"per_code":1216.0},{"model":"Constrained WLS","pool":"chronic","share":0.1,"codes":1,"pct_rise":1.539,"per_code":1121.0},{"model":"Constrained WLS","pool":"chronic","share":0.1,"codes":2,"pct_rise":3.397,"per_code":1228.0},{"model":"Constrained WLS","pool":"chronic","share":0.25,"codes":1,"pct_rise":3.824,"per_code":1112.0},{"model":"Constrained WLS","pool":"chronic","share":0.25,"codes":2,"pct_rise":8.256,"per_code":1194.0}],"drivers":[{"rank":1,"label":"log_spend_y1","shap":3970.0,"sd":242.0},{"rank":2,"label":"log_rx_fills_y1","shap":1625.0,"sd":181.0},{"rank":3,"label":"n_conditions","shap":1015.0,"sd":168.0},{"rank":4,"label":"log_office_visits_y1","shap":557.0,"sd":47.0},{"rank":5,"label":"log_inpatient_y1","shap":386.0,"sd":98.0},{"rank":6,"label":"n_body_systems","shap":311.0,"sd":48.0},{"rank":7,"label":"END002 Diabetes mellitus without complication","shap":172.0,"sd":26.0},{"rank":8,"label":"age_55-64","shap":167.0,"sd":53.0},{"rank":9,"label":"age_65-74","shap":119.0,"sd":15.0},{"rank":10,"label":"MUS003 Rheumatoid arthritis and related disease","shap":116.0,"sd":52.0},{"rank":11,"label":"age_5-17","shap":112.0,"sd":22.0},{"rank":12,"label":"age_75-84","shap":110.0,"sd":27.0},{"rank":13,"label":"END001 Thyroid disorders","shap":100.0,"sd":27.0},{"rank":14,"label":"age_25-34_x_female","shap":95.0,"sd":27.0},{"rank":15,"label":"age_85+","shap":84.0,"sd":19.0}]}</script>
+<script>
+(function(){
+const D = JSON.parse(document.getElementById("model-data").textContent);
+const $ = id => document.getElementById(id);
+const money = v => (v < 0 ? "-$" : "$") + Math.abs(Math.round(v)).toLocaleString("en-US");
+const NS = "http://www.w3.org/2000/svg";
+function el(tag, attrs, parent, text){
+  const e = document.createElementNS(NS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  if (text !== undefined) e.textContent = text;
+  if (parent) parent.appendChild(e);
+  return e;
+}
+const COLOR = {"Linear":"#2c5d8a","Fair linear":"#b8621b","Actuarial GLM":"#1f6f63",
+  "Boosted trees":"#a33a2a","Trees":"#a33a2a","Neural network":"#6b3d6e"};
+
+/* facts */
+const F = D.facts;
+[[money(F.mean_spend), "average spending per person, next year"],
+ [money(F.median_spend), "median: half spend less than this"],
+ [F.top5_share + "%", "of all spending comes from the top 5% of people"],
+ [F.zero_share + "%", "spend nothing at all in a year"]].forEach(([b, s]) => {
+  const d = document.createElement("div"); d.className = "fact";
+  d.innerHTML = "<b>" + b + "</b><span>" + s + "</span>"; $("facts").appendChild(d);
+});
+
+/* 01 accuracy */
+(function(){
+  const rows = [...D.accuracy].sort((a, b) => b.r2 - a.r2);
+  const W = 900, rowH = 30, left = 230, top = 24, H = top + rows.length * rowH + 30;
+  const max = Math.max(...rows.map(r => r.r2_hi)) * 1.1;
+  const x = v => left + (W - left - 30) * v / max;
+  const svg = el("svg", {viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "R-squared by model"});
+  for (let t = 0; t <= max + 1e-9; t += 0.05){
+    el("line", {x1: x(t), x2: x(t), y1: top - 8, y2: H - 26, stroke: "#b9c7b2"}, svg);
+    el("text", {x: x(t), y: H - 8, "text-anchor": "middle"}, svg, t.toFixed(2));
+  }
+  rows.forEach((r, i) => {
+    const y = top + i * rowH + rowH / 2, c = COLOR[r.family] || "#1d2a24";
+    el("text", {x: left - 10, y: y + 4, "text-anchor": "end"}, svg, r.model);
+    el("line", {x1: x(r.r2_lo), x2: x(r.r2_hi), y1: y, y2: y, stroke: c, "stroke-width": 3}, svg);
+    el("rect", {x: left, y: y - 7, width: Math.max(0, x(r.r2) - left), height: 14, fill: c, opacity: .22}, svg);
+    el("circle", {cx: x(r.r2), cy: y, r: 5, fill: c}, svg);
+    el("text", {x: x(r.r2_hi) + 8, y: y + 4}, svg, r.r2.toFixed(3));
+  });
+  $("acc-chart").appendChild(svg);
+})();
+
+/* 02 groups */
+(function(){
+  const models = [...new Set(D.compensation.map(r => r.model))];
+  let current = D.target_groups[0] || D.groups[0];
+  D.groups.forEach(g => {
+    const b = document.createElement("button");
+    b.className = "chip"; b.textContent = g; b.setAttribute("aria-pressed", g === current);
+    b.onclick = () => { current = g; [...$("group-chips").children].forEach(c => c.setAttribute("aria-pressed", c.textContent === g)); draw(); };
+    $("group-chips").appendChild(b);
+  });
+  function draw(){
+    const rows = models.map(m => D.compensation.find(r => r.model === m && r.group === current)).filter(Boolean);
+    const worst = rows.reduce((a, b) => (a.nc < b.nc ? a : b));
+    const cost = rows[0] ? rows[0].mean_cost : null;
+    $("group-sentence").innerHTML = worst.nc < 0
+      ? `For the average person in <em>${current.toLowerCase()}</em>, whose care costs about ${money(cost)} a year, the ${worst.model} formula pays <strong>${money(Math.abs(worst.nc))} too little</strong>.`
+      : `No formula here underpays <em>${current.toLowerCase()}</em> on average; the largest gap is ${money(worst.nc)}.`;
+    const W = 900, rowH = 30, left = 230, top = 20, H = top + rows.length * rowH + 34;
+    const lim = Math.max(...rows.map(r => Math.max(Math.abs(r.lo), Math.abs(r.hi)))) * 1.1 || 1;
+    const x = v => left + (W - left - 30) * (v + lim) / (2 * lim);
+    const svg = el("svg", {viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Net compensation by model"});
+    el("line", {x1: x(0), x2: x(0), y1: 6, y2: H - 26, stroke: "#1d2a24", "stroke-width": 1.5}, svg);
+    [-lim, -lim / 2, lim / 2, lim].forEach(t => el("text", {x: x(t), y: H - 8, "text-anchor": "middle"}, svg, money(t)));
+    rows.forEach((r, i) => {
+      const y = top + i * rowH + rowH / 2, c = r.nc < 0 ? "#a33a2a" : "#1f6f63";
+      el("text", {x: left - 10, y: y + 4, "text-anchor": "end"}, svg, r.model);
+      el("rect", {x: Math.min(x(0), x(r.nc)), y: y - 8, width: Math.abs(x(r.nc) - x(0)), height: 16, fill: c, opacity: .75}, svg);
+      el("line", {x1: x(r.lo), x2: x(r.hi), y1: y, y2: y, stroke: "#1d2a24", "stroke-width": 1.2}, svg);
+      el("text", {x: r.nc < 0 ? x(r.lo) - 6 : x(r.hi) + 6, y: y + 4, "text-anchor": r.nc < 0 ? "end" : "start"}, svg, money(r.nc));
+    });
+    $("group-chart").replaceChildren(svg);
+  }
+  draw();
+})();
+
+/* 03 frontier */
+(function(){
+  const methods = [...new Set(D.frontier.map(r => r.method.replace(", constrained", "")))].filter(m => D.frontier.some(r => r.method === m));
+  methods.forEach(m => { const o = document.createElement("option"); o.value = m; o.textContent = m; $("method").appendChild(o); });
+  function path(){
+    const m = $("method").value;
+    const pts = D.frontier.filter(r => r.method === m).sort((a, b) => a.lambda - b.lambda);
+    const cons = D.frontier.find(r => r.method === m + ", constrained" || (m === "Penalized WLS" && r.method === "Constrained WLS"));
+    if (cons) pts.push(cons);
+    return pts;
+  }
+  function draw(){
+    const pts = path();
+    $("lam").max = pts.length - 1;
+    const i = Math.min(+$("lam").value, pts.length - 1), p = pts[i];
+    $("lam-label").textContent = p.lambda === null ? "fully constrained" : (p.lambda === 0 ? "no penalty" : "penalty " + p.lambda);
+    const base = pts[0];
+    const cells = [[p.r2.toFixed(3), "accuracy (R²)", base.r2], [money(p.max_gap), "largest gap for a target group", null]];
+    D.target_groups.forEach(g => { if (p.nc[g] !== undefined) cells.push([money(p.nc[g]), g, null]); });
+    $("frontier-readout").innerHTML = cells.map(([b, s]) => `<div><b>${b}</b><span>${s}</span></div>`).join("");
+    const W = 900, H = 320, L = 70, B = 44, T = 16, R = 20;
+    const xs = pts.map(q => q.max_gap), ys = pts.map(q => q.r2);
+    const x0 = 0, x1 = Math.max(...xs) * 1.08 || 1, y0 = Math.min(...ys) * 0.96, y1 = Math.max(...ys) * 1.02;
+    const X = v => L + (W - L - R) * (v - x0) / (x1 - x0), Y = v => H - B - (H - B - T) * (v - y0) / (y1 - y0);
+    const svg = el("svg", {viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Accuracy against largest group gap"});
+    el("line", {x1: L, x2: W - R, y1: H - B, y2: H - B, stroke: "#1d2a24"}, svg);
+    el("line", {x1: L, x2: L, y1: T, y2: H - B, stroke: "#1d2a24"}, svg);
+    el("text", {x: (L + W) / 2, y: H - 8, "text-anchor": "middle"}, svg, "largest gap for a target group ($ per person-year)");
+    el("text", {x: 14, y: T + 10}, svg, "R²");
+    [x0, (x0 + x1) / 2, x1].forEach(t => el("text", {x: X(t), y: H - B + 18, "text-anchor": "middle"}, svg, money(t)));
+    [y0, (y0 + y1) / 2, y1].forEach(t => el("text", {x: L - 8, y: Y(t) + 4, "text-anchor": "end"}, svg, t.toFixed(3)));
+    el("polyline", {points: pts.map(q => X(q.max_gap) + "," + Y(q.r2)).join(" "), fill: "none", stroke: "#b9c7b2", "stroke-width": 2}, svg);
+    pts.forEach((q, j) => el("circle", {cx: X(q.max_gap), cy: Y(q.r2), r: j === i ? 8 : 4, fill: j === i ? "#b8621b" : "#1f6f63"}, svg));
+    $("frontier-chart").replaceChildren(svg);
+  }
+  $("method").onchange = () => { $("lam").value = 0; draw(); };
+  $("lam").oninput = draw;
+  draw();
+})();
+
+/* 04 coding */
+(function(){
+  const shares = [...new Set(D.coding.map(r => r.share))].sort((a, b) => a - b);
+  const codes = [...new Set(D.coding.map(r => r.codes))].sort();
+  shares.forEach(s => { const o = document.createElement("option"); o.value = s; o.textContent = Math.round(s * 100) + "% of people"; $("share").appendChild(o); });
+  codes.forEach(c => { const o = document.createElement("option"); o.value = c; o.textContent = c + (c > 1 ? " codes" : " code"); $("codes").appendChild(o); });
+  $("share").value = shares.includes(0.1) ? 0.1 : shares[0];
+  function draw(){
+    const s = +$("share").value, c = +$("codes").value, p = $("pool").value;
+    const rows = D.coding.filter(r => r.share === s && r.codes === c && r.pool === p).sort((a, b) => b.per_code - a.per_code);
+    const max = Math.max(...rows.map(r => r.per_code), 1);
+    $("coding-table").innerHTML = "<table><thead><tr><th>Formula</th><th>Extra payment per added code</th><th></th><th>Rise in total payments</th></tr></thead><tbody>" +
+      rows.map(r => `<tr><td>${r.model}</td><td>${money(r.per_code)}</td><td style="width:34%"><div style="height:12px;background:#b8621b;width:${Math.max(0, 100 * r.per_code / max)}%"></div></td><td>${r.pct_rise.toFixed(2)}%</td></tr>`).join("") +
+      "</tbody></table>";
+  }
+  ["share", "codes", "pool"].forEach(id => $(id).onchange = draw);
+  draw();
+})();
+
+/* 05 drivers */
+(function(){
+  const rows = D.drivers.slice(0, 12);
+  const W = 900, rowH = 28, left = 360, top = 10, H = top + rows.length * rowH + 30;
+  const max = Math.max(...rows.map(r => r.shap + (r.sd || 0))) * 1.05;
+  const x = v => left + (W - left - 70) * v / max;
+  const svg = el("svg", {viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Top drivers"});
+  rows.forEach((r, i) => {
+    const y = top + i * rowH + rowH / 2;
+    el("text", {x: left - 10, y: y + 4, "text-anchor": "end"}, svg, r.label.length > 44 ? r.label.slice(0, 43) + "…" : r.label);
+    el("rect", {x: left, y: y - 8, width: x(r.shap) - left, height: 16, fill: "#1f6f63", opacity: .8}, svg);
+    el("text", {x: x(r.shap) + 6, y: y + 4}, svg, money(r.shap));
+  });
+  $("drivers-chart").appendChild(svg);
+})();
+
+$("foot").innerHTML = `Data: ${D.meta.source}; ${D.meta.persons.toLocaleString("en-US")} people representing ${D.meta.population_millions} million a year; ${D.meta.dollars}. ` +
+  `From the paper <em>${D.meta.paper}</em> by ${D.meta.author}. Code and methods: <a href="${D.meta.repository}">${D.meta.repository.replace("https://", "")}</a>. ` +
+  `Figures are survey-weighted, out-of-sample estimates. This page runs entirely in your browser and sends nothing anywhere. Updated ${D.meta.generated}.`;
+})();
+</script>
+
+</body>
+</html>

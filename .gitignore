@@ -26,3 +26,9 @@ Thumbs.db
 .vscode/
 .idea/
 .claude/
+data/derived/oof/
+__pycache__/
+*.egg-info/
+.pytest_cache/
+.env.local
+.vercel/
