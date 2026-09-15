@@ -1,4 +1,4 @@
-<title>The Payment Formula</title>
+<title>The Payment Formula, Tested</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Serif:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Sans+Condensed:wght@500;600&display=swap">
@@ -63,14 +63,15 @@ footer a{color:var(--ink)}
 <div class="sheet">
 <header>
   <div class="tag">Risk adjustment · public explorer</div>
-  <h1>The Payment Formula</h1>
-  <p class="lede">Health plans in Medicare Advantage and the ACA marketplaces are paid by a formula that predicts how much each enrollee will cost. When the formula guesses low for a group of people, plans lose money on them. This page shows how different formulas guess, who they shortchange, what it costs to fix, and how more intensive diagnosis coding moves the money.</p>
+  <h1>The Payment Formula, Tested</h1>
+  <p class="lede">Health plans in Medicare Advantage and the ACA marketplaces are paid by a formula that predicts how much each enrollee will cost. When a formula guesses low for a group of people, plans lose money on them. This page tests formulas of that kind, from a linear model built the way payment formulas are to machine-learning models, on how they guess, who they shortchange, what it costs to fix, and how much more intensive diagnosis coding moves the money.</p>
+  <p class="note"><strong>These are research benchmarks, not the actual CMS-HCC or HHS-HCC formulas.</strong> Every model here was estimated on the Medical Expenditure Panel Survey, a household survey with self-reported conditions, and predicts next year's spending from this year's record. The comparisons between models are the point; the dollar amounts are not what any real plan is paid.</p>
   <div class="facts" id="facts"></div>
 </header>
 
 <section id="s-accuracy">
   <h2><span class="n">01</span>How well each formula predicts next year's spending</h2>
-  <p class="note">Each model saw one year of a person's record and predicted the next year's medical spending for people it had never seen. R² is the share of the variation in spending the model explains; a flexible model explains more, but none explains most of it, because much of next year's spending is genuinely unpredictable.</p>
+  <p class="note">Each model saw one year of a person's record and predicted the next year's medical spending for people it had never seen. R² is the share of the variation in spending the model explains, for a single fitted model, with a 95% interval; a flexible model explains more, but none explains most of it, because much of next year's spending is genuinely unpredictable. The payment-form linear model keeps every diagnosis coefficient at zero or above, as payment formulas do; the unconstrained linear model pays some people a negative amount.</p>
   <div class="chart" id="acc-chart"></div>
 </section>
 
@@ -98,21 +99,23 @@ footer a{color:var(--ink)}
 
 <section id="s-coding">
   <h2><span class="n">04</span>The coding game</h2>
-  <p class="note">Some diagnoses are recorded more thoroughly by some plans than others. Here a share of people gain diagnosis codes they did not have, with nothing else about their care changed. The table shows how much each formula raises its payment in response.</p>
+  <p class="note">Some diagnoses are recorded more thoroughly by some plans than others. Here a share of people gain diagnosis codes they did not have, with nothing else about their care changed. The table shows how much each formula raises its payment in response, and how much that figure varies across the five groups of people it was tested on. A formula that also uses last year's spending responds less to a code on its own, but more to extra use of care; payment formulas leave spending out for that reason.</p>
   <div class="row">
     <label for="share">People affected</label>
     <select id="share"></select>
     <label for="codes">Codes added</label>
     <select id="codes"></select>
     <label for="pool">Which codes</label>
-    <select id="pool"><option value="chronic">Chronic, payment-relevant</option><option value="prevalence">Any, by how common</option></select>
+    <select id="pool"><option value="chronic">Chronic, payment-relevant</option><option value="targeted">Targeted: the codes that pay most</option><option value="prevalence">Any, by how common</option></select>
+    <label for="fset">Formula uses</label>
+    <select id="fset"><option value="F3">diagnoses and last year's spending</option><option value="F2">diagnoses only, as payment formulas do</option></select>
   </div>
   <div class="chart" id="coding-table"></div>
 </section>
 
 <section id="s-drivers">
   <h2><span class="n">05</span>What the boosted model listens to</h2>
-  <p class="note">The average size of each feature's contribution to a person's prediction in the most accurate tree model, measured with SHAP values on people held out from training.</p>
+  <p class="note">The average size of each feature's contribution to a person's prediction in the squared-error boosted model, measured with SHAP values on people held out from training.</p>
   <div class="chart" id="drivers-chart"></div>
 </section>
 
@@ -220,7 +223,9 @@ const F = D.facts;
     const i = Math.min(+$("lam").value, pts.length - 1), p = pts[i];
     $("lam-label").textContent = p.lambda === null ? "fully constrained" : (p.lambda === 0 ? "no penalty" : "penalty " + p.lambda);
     const base = pts[0];
-    const cells = [[p.r2.toFixed(3), "accuracy (R²)", base.r2], [money(p.max_gap), "largest gap for a target group", null]];
+    const ci = (lo, hi, f) => (lo === null || lo === undefined) ? "" : ` (${f(lo)} to ${f(hi)})`;
+    const cells = [[p.r2.toFixed(3), "accuracy (R²)" + ci(p.r2_lo, p.r2_hi, v => v.toFixed(3)), base.r2],
+                   [money(p.max_gap), "largest gap for a target group" + ci(p.gap_lo, p.gap_hi, money), null]];
     D.target_groups.forEach(g => { if (p.nc[g] !== undefined) cells.push([money(p.nc[g]), g, null]); });
     $("frontier-readout").innerHTML = cells.map(([b, s]) => `<div><b>${b}</b><span>${s}</span></div>`).join("");
     const W = 900, H = 320, L = 70, B = 44, T = 16, R = 20;
@@ -251,14 +256,15 @@ const F = D.facts;
   codes.forEach(c => { const o = document.createElement("option"); o.value = c; o.textContent = c + (c > 1 ? " codes" : " code"); $("codes").appendChild(o); });
   $("share").value = shares.includes(0.1) ? 0.1 : shares[0];
   function draw(){
-    const s = +$("share").value, c = +$("codes").value, p = $("pool").value;
-    const rows = D.coding.filter(r => r.share === s && r.codes === c && r.pool === p).sort((a, b) => b.per_code - a.per_code);
+    const s = +$("share").value, c = +$("codes").value, p = $("pool").value, f = $("fset").value;
+    const rows = D.coding.filter(r => r.share === s && r.codes === c && r.pool === p && (r.feature_set || "F3") === f)
+      .sort((a, b) => b.per_code - a.per_code);
     const max = Math.max(...rows.map(r => r.per_code), 1);
-    $("coding-table").innerHTML = "<table><thead><tr><th>Formula</th><th>Extra payment per added code</th><th></th><th>Rise in total payments</th></tr></thead><tbody>" +
-      rows.map(r => `<tr><td>${r.model}</td><td>${money(r.per_code)}</td><td style="width:34%"><div style="height:12px;background:#b8621b;width:${Math.max(0, 100 * r.per_code / max)}%"></div></td><td>${r.pct_rise.toFixed(2)}%</td></tr>`).join("") +
+    $("coding-table").innerHTML = "<table><thead><tr><th>Formula</th><th>Extra payment per added code</th><th>Varies by</th><th></th><th>Rise in total payments</th></tr></thead><tbody>" +
+      rows.map(r => `<tr><td>${r.model}</td><td>${money(r.per_code)}</td><td>${r.per_code_sd === null || r.per_code_sd === undefined ? "–" : "±" + money(r.per_code_sd)}</td><td style="width:30%"><div style="height:12px;background:#b8621b;width:${Math.max(0, 100 * r.per_code / max)}%"></div></td><td>${r.pct_rise.toFixed(2)}%</td></tr>`).join("") +
       "</tbody></table>";
   }
-  ["share", "codes", "pool"].forEach(id => $(id).onchange = draw);
+  ["share", "codes", "pool", "fset"].forEach(id => $(id).onchange = draw);
   draw();
 })();
 
@@ -280,6 +286,6 @@ const F = D.facts;
 
 $("foot").innerHTML = `Data: ${D.meta.source}; ${D.meta.persons.toLocaleString("en-US")} people representing ${D.meta.population_millions} million a year; ${D.meta.dollars}. ` +
   `From the paper <em>${D.meta.paper}</em> by ${D.meta.author}. Code and methods: <a href="${D.meta.repository}">${D.meta.repository.replace("https://", "")}</a>. ` +
-  `Figures are survey-weighted, out-of-sample estimates. This page runs entirely in your browser and sends nothing anywhere. Updated ${D.meta.generated}.`;
+  `Figures are survey-weighted, out-of-sample estimates from research benchmark models, not the CMS payment formulas. This page runs entirely in your browser and sends nothing anywhere. Updated ${D.meta.generated}.`;
 })();
 </script>

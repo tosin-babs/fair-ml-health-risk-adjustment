@@ -196,3 +196,31 @@ def test_linear_model_rise_equals_coefficient():
     r = coding.stress(predict, X, w, cols, ["ccsr_CIR019"], {"ccsr_CIR019": 1.0},
                       share=1.0, k=1, seed=0)
     assert r["dollars_per_code"] == pytest.approx(250.0)
+
+
+def test_flag_gains_counts_new_body_systems_only_once():
+    cols = ["ccsr_CIR019", "ccsr_CIR017", "n_conditions", "n_body_systems"]
+    X = np.array([[0, 0, 0, 0], [0, 1, 1, 1]], dtype=float)
+    w = np.ones(2)
+    predict = lambda A: 100 + 300 * A[:, 0] + 50 * A[:, 1] + 20 * A[:, 2] + 10 * A[:, 3]
+    g = coding.flag_gains(predict, X, w, cols, ["ccsr_CIR019"],
+                          count_col="n_conditions", system_col="n_body_systems")
+    # row 0 gains a new body system (+330); row 1 already has a circulatory code (+320)
+    assert g["ccsr_CIR019"] == pytest.approx(325.0)
+
+
+# ------------------------------------------------------------- bootstrap ----
+def test_rao_wu_draws_one_fewer_psu_and_rescales_weights():
+    # stratum 0 has 2 PSUs of 3 rows each; stratum 1 has 4 PSUs of 2 rows each
+    clusters = np.array([0] * 3 + [1] * 3 + [2, 2, 3, 3, 4, 4, 5, 5])
+    strata = np.array([0] * 6 + [1] * 8)
+    rng = np.random.default_rng(0)
+    for _ in range(20):
+        idx, mult = metrics.bootstrap_index(clusters, strata, rng)
+        s0, s1 = strata[idx] == 0, strata[idx] == 1
+        assert s0.sum() == 3 and s1.sum() == 6          # n_h - 1 PSUs drawn in each stratum
+        assert np.allclose(mult[s0], 2.0) and np.allclose(mult[s1], 4 / 3)
+        # rescaled weight total per stratum equals the stratum's full weight
+        assert mult[s0].sum() == pytest.approx(6.0) and mult[s1].sum() == pytest.approx(8.0)
+    idx, mult = metrics.bootstrap_index(clusters, strata, rng, rao_wu=False)
+    assert len(idx) == len(clusters) and np.allclose(mult, 1.0)

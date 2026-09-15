@@ -75,6 +75,38 @@ def perturb(X, columns, rows, pool, pool_weights, k, rng, count_col=None,
     return Xp, added
 
 
+def flag_gains(predict, X, w, columns, pool, count_col=None, system_col=None,
+               prefix="ccsr_"):
+    """Weighted mean rise in a model's prediction when each flag in `pool` is
+    switched on for the rows that lack it, counts updated as in `perturb`.
+
+    This is what a coder who can query the model learns: which codes pay most.
+    Returns a dict column -> dollars per added code (NaN if every row has it).
+    """
+    p0 = predict(X)
+    j_cnt = columns.index(count_col) if count_col else None
+    j_sys = columns.index(system_col) if system_col else None
+    flag_cols = [i for i, c in enumerate(columns) if c.startswith(prefix)]
+    out = {}
+    for c in pool:
+        j = columns.index(c)
+        rows = np.flatnonzero(X[:, j] == 0)
+        if not len(rows):
+            out[c] = np.nan
+            continue
+        Xp = X[rows].copy()
+        Xp[:, j] = 1
+        if j_cnt is not None:
+            Xp[:, j_cnt] += 1
+        if j_sys is not None:
+            same = [i for i in flag_cols
+                    if columns[i][len(prefix):len(prefix) + 3] == c[len(prefix):len(prefix) + 3]]
+            new_system = X[np.ix_(rows, same)].sum(axis=1) == 0
+            Xp[new_system, j_sys] += 1
+        out[c] = float(np.average(predict(Xp) - p0[rows], weights=w[rows]))
+    return out
+
+
 def stress(predict, X, w, columns, pool, pool_weights, share, k, seed,
            count_col=None, system_col=None):
     """Percentage rise in total prediction and dollars per added code."""

@@ -26,7 +26,8 @@ plt.rcParams.update({
 P = config.PALETTE
 T = config.TABLES
 
-FAMILY = {"WLS": "linear", "Elastic net": "linear", "Constrained WLS": "fair",
+FAMILY = {"WLS": "linear", "Payment-form WLS (non-negative)": "linear", "Elastic net": "linear",
+          "Constrained WLS": "fair",
           "Tweedie GLM": "glm", "Two-part": "glm",
           "LightGBM (Tweedie)": "gbm", "LightGBM (squared error)": "gbm",
           "Random forest": "gbm", "Neural network": "nn", "CANN": "nn"}
@@ -138,6 +139,10 @@ def figure_gameability():
         acc.loc["Constrained WLS"] = float(cw["r2"].iloc[0])
     c = pd.read_csv(T / "table5_coding_sensitivity.csv")
     c = c[(c["pool"] == "chronic") & (c["share_affected"] == 0.10) & (c["codes_added"] == 1)]
+    if "feature_set" in c:
+        # accuracy on the x axis is for the primary feature set, so the coding
+        # response must be too; the F2 figures are in Table 7
+        c = c[c["feature_set"] == config.PRIMARY_FEATURE_SET]
     c = c.assign(r2=c["model"].map(acc)).dropna(subset=["r2"])
     fig, ax = plt.subplots(figsize=(7.0, 4.3))
     for _, r in c.iterrows():

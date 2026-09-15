@@ -45,7 +45,23 @@ def ccsr_flags(d, c, min_prevalence=None):
     wide = (pd.crosstab(sub["uid"], sub["ccsr"]).clip(upper=1)
               .reindex(index=d["uid"], columns=keep, fill_value=0))
     wide.index = d.index
-    wide.columns = [f"ccsr_{k}" for k in wide.columns]
+    # MEPS releases three-digit ICD-10 codes, and CCSR assigns some of them
+    # to two categories at once (E11 to END002 and END005), which makes two
+    # flags identical for every person. One is kept, under a combined name,
+    # so that no coefficient is split arbitrarily and a coding perturbation
+    # cannot switch on one member of an inseparable pair.
+    merged, drop = {}, set()
+    cols = list(wide.columns)
+    for i, a in enumerate(cols):
+        if a in drop:
+            continue
+        for b in cols[i + 1:]:
+            if b not in drop and (wide[a].to_numpy() == wide[b].to_numpy()).all():
+                drop.add(b)
+                merged.setdefault(a, []).append(b)
+    wide = wide.drop(columns=sorted(drop))
+    wide.columns = [f"ccsr_{k}" + ("+" + "+".join(merged[k]) if k in merged else "") for k in wide.columns]
+    keep = [c[5:] for c in wide.columns]
     return wide.astype(np.float32), keep
 
 
@@ -99,6 +115,7 @@ def build(feature_set=None, min_prevalence=None, data=None):
 
     attrs = d[["uid", "panel", "age", "female", "race", "povcat", "inscov",
                "any_mbd", "any_function_help", "n_conditions"]].copy()
+    attrs["died"] = d["died_y2"].astype(int)
     return (X, d["y"].to_numpy(float), d["weight"].to_numpy(float),
             d["cluster"].to_numpy(), d["stratum"].to_numpy(), attrs)
 

@@ -13,7 +13,8 @@
     "CPI_TO_BASE": "{2018: 1.24922, 2019: 1.22699, 2020: 1.21204, 2021: 1.15765, 2022: 1.07187, 2023: 1.0295, 2024: 1.0}",
     "HEALTH_ROUND": "2",
     "FUNCTION_ROUND": "1",
-    "EXCLUDE_DIED": "True",
+    "EXCLUDE_DIED": "False",
+    "ANNUALIZE_DECEDENTS": "True",
     "AGE_BANDS": "[(0, 4), (5, 17), (18, 24), (25, 34), (35, 44), (45, 54), (55, 64), (65, 74), (75, 84), (85, 200)]",
     "CCSR_MIN_PREVALENCE": "0.005",
     "FEATURE_SETS": "('F1', 'F2', 'F3', 'F4')",
@@ -21,13 +22,13 @@
     "OUTCOME_CAP": "250000",
     "CV_FOLDS": "5",
     "CV_REPEATS": "3",
-    "FAIRNESS_GROUPS": "{'Income below 200% FPL': ('povcat', 'le', 3), 'Hispanic': ('race', 'eq', 1), 'Non-Hispanic Black': ('race', 'eq', 3), 'Non-Hispanic Asian': ('race', 'eq', 4), 'Needs ADL or IADL help': ('any_function_help', 'eq', 1), 'Mental health condition': ('any_mbd', 'eq', 1), 'Age 65 and over': ('age', 'ge', 65), 'Uninsured all year': ('inscov', 'eq', 3)}",
+    "FAIRNESS_GROUPS": "{'Income below 200% FPL': ('povcat', 'le', 3), 'Hispanic': ('race', 'eq', 1), 'Non-Hispanic Black': ('race', 'eq', 3), 'Non-Hispanic Asian': ('race', 'eq', 4), 'Needs ADL or IADL help': ('any_function_help', 'eq', 1), 'Mental health condition': ('any_mbd', 'eq', 1), 'Age 65 and over': ('age', 'ge', 65), 'Uninsured all year': ('inscov', 'eq', 3), 'Died in year 2': ('died', 'eq', 1)}",
     "MIN_GROUP_N": "100",
     "FAIR_LAMBDAS": "(0.0, 0.1, 0.3, 1.0, 3.0, 10.0, 30.0, 100.0)",
     "FAIR_TARGET_GROUPS": "('Income below 200% FPL', 'Mental health condition', 'Needs ADL or IADL help')",
     "CODING_SHARES": "(0.05, 0.1, 0.25)",
     "CODING_ADDED": "(1, 2)",
-    "CODING_POOLS": "('prevalence', 'chronic')",
+    "CODING_POOLS": "('prevalence', 'chronic', 'targeted')",
     "FIG_DPI": "300",
     "PALETTE": "{'ink': '#1A1A1A', 'muted': '#7F8C8D', 'rule': '#D5D8DC', 'linear': '#1B6CA8', 'glm': '#117A65', 'gbm': '#B03A2E', 'nn': '#7D3C98', 'fair': '#B7950B'}"
   },
@@ -44,39 +45,43 @@
   "timings": [
     {
       "step": "Prospective dataset from the MEPS panels",
-      "seconds": 2.4
+      "seconds": 4.1
     },
     {
       "step": "Sample description",
-      "seconds": 2.6
+      "seconds": 8.6
     },
     {
       "step": "RQ1: accuracy with survey-aware cross-validation",
-      "seconds": 1131.1
+      "seconds": 2018.5
+    },
+    {
+      "step": "RQ1: paired comparisons and cell calibration",
+      "seconds": 70.2
     },
     {
       "step": "RQ2: group compensation and the fairness frontier",
-      "seconds": 228.6
+      "seconds": 1297.6
     },
     {
       "step": "RQ3: drivers and their stability",
-      "seconds": 72.7
+      "seconds": 137.1
     },
     {
       "step": "RQ4: coding sensitivity",
-      "seconds": 149.7
+      "seconds": 553.8
     },
     {
       "step": "Robustness",
-      "seconds": 414.9
+      "seconds": 962.6
     },
     {
       "step": "Figures",
-      "seconds": 1.4
+      "seconds": 2.5
     },
     {
       "step": "Calculator payload",
-      "seconds": 0.2
+      "seconds": 0.4
     }
   ]
 }

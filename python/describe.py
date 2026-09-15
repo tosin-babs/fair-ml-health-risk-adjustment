@@ -76,8 +76,10 @@ def main():
     _, keep = features.ccsr_flags(d, c)
     valid = c[c["valid_category"]]
     prev = valid.groupby("ccsr")["uid"].nunique() / len(d)
-    ta = pd.DataFrame({"ccsr": keep, "description": [lab.get(k, "") for k in keep],
-                       "prevalence": [float(prev[k]) for k in keep]})
+    def describe(k):
+        return " / ".join(lab.get(part, "") for part in k.split("+"))
+    ta = pd.DataFrame({"ccsr": keep, "description": [describe(k) for k in keep],
+                       "prevalence": [float(prev[k.split("+")[0]]) for k in keep]})
     ta.sort_values("prevalence", ascending=False).to_csv(
         config.TABLES / "tableA_ccsr_features.csv", index=False)
 

@@ -14,7 +14,11 @@ fairness gap materially, not merely if it moves a level.
   CCSR floor 0.2% / 1%     minimum prevalence for a condition flag
   no prior spending        F2 instead of F3 (payment formulas exclude it)
   social-risk features     F4 instead of F3
-  decedents included       people who died in year 2 kept, with partial outcomes
+  decedents excluded       people who died in year 2 dropped (the primary
+                           sample keeps them with annualized spending)
+  decedents not annualized kept with their partial-year spending
+  3 folds / 10 folds       fold count
+  per panel                each two-year panel on its own
   pandemic outcomes out    panels whose outcome year is 2020 or 2021 dropped
   age 65 and over          fitted and scored within the subset
   under 65, private        fitted and scored within the subset
@@ -34,7 +38,9 @@ import features
 from common import metrics
 from riskfair.models import GBM, WLS, TweedieGLM
 
-MODELS = {"WLS": WLS, "Tweedie GLM": TweedieGLM,
+from riskfair.models import PaymentWLS  # noqa: E402
+
+MODELS = {"WLS": WLS, "Payment-form WLS (non-negative)": PaymentWLS, "Tweedie GLM": TweedieGLM,
           "LightGBM (Tweedie)": lambda: GBM("tweedie", seed=config.SEED)}
 
 
@@ -67,6 +73,7 @@ def evaluate(label, data, feature_set="F3", subset=None, cap=None,
         keep = subset(attrs).to_numpy()
         X, y, w, cl, st = X[keep], y[keep], w[keep], cl[keep], st[keep]
         attrs = attrs[keep].reset_index(drop=True)
+    cols = list(X.columns)
     X = X.to_numpy(np.float32)
     y_use = np.minimum(y, cap) if cap else y
     w_fit = np.ones_like(w) if unweighted else w
@@ -76,7 +83,10 @@ def evaluate(label, data, feature_set="F3", subset=None, cap=None,
     for mname, make in (models or MODELS).items():
         p = np.full(len(y), np.nan)
         for _, _, tr, te in common.folds(cl, st, repeats=1):
-            m = make().fit(X[tr], y_use[tr], w_fit[tr], clusters=cl[tr])
+            m = make()
+            if hasattr(m, "set_columns"):
+                m.set_columns(cols)
+            m = m.fit(X[tr], y_use[tr], w_fit[tr], clusters=cl[tr])
             p[te] = m.predict(X[te])
         acc = metrics.accuracy(y_use, p, w)
         g = metrics.group_fairness(y_use, p, w, masks)
@@ -105,8 +115,21 @@ def main():
     rows += evaluate("no prior spending (F2)", base, feature_set="F2")
     rows += evaluate("social-risk features (F4)", base, feature_set="F4")
 
-    d, c, _ = build_data.build(exclude_died=False)
-    rows += evaluate("decedents included", (d.reset_index(drop=True), c))
+    d, c, _ = build_data.build(exclude_died=True)
+    rows += evaluate("decedents excluded", (d.reset_index(drop=True), c))
+    dn = base[0].copy()
+    dn["y"] = dn["y_raw"]
+    rows += evaluate("decedents not annualized", (dn, base[1]))
+    for k in (3, 10):
+        saved = config.CV_FOLDS
+        config.CV_FOLDS = k
+        rows += evaluate(f"{k} folds", base)
+        config.CV_FOLDS = saved
+    for panel in config.PANELS:
+        dp, cp = base[0], base[1]
+        keep = dp["panel"] == panel
+        rows += evaluate(f"panel {panel} only", (dp[keep].reset_index(drop=True), cp[cp["panel"] == panel]),
+                         models={k: v for k, v in MODELS.items() if k in ("WLS", "LightGBM (Tweedie)")})
 
     pre = [p for p, s in config.PANELS.items() if s["year1"] + 1 not in (2020, 2021)]
     dp, cp = base[0], base[1]

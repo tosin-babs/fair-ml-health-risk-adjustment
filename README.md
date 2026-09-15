@@ -1,27 +1,36 @@
 # Interpretable and Fair Machine Learning for Health-Cost Prediction and Risk Adjustment
 
-A reproducible benchmark of nine health-cost prediction models on public data,
-evaluated together on accuracy, group fairness, interpretability and coding
-sensitivity, and the `riskfair` Python package that runs the same evaluation on
-any person-level cost data.
+A reproducible benchmark of ten health-cost prediction models on public data,
+evaluated together on accuracy, group fairness and its stability out of sample,
+interpretability, and the response of payment to coding and to prior use, and
+the `riskfair` Python package that runs the same evaluation on any person-level
+cost data.
+
+It is a research benchmark on survey data, not a payment formula.
 
 ## Headline results
 
 Medical Expenditure Panel Survey, two-year panels 23 to 27 (2018 to 2023),
-43,568 persons, year-1 predictors and year-2 total spending in 2024 dollars.
-Every number is out of sample from cross-validation with primary sampling units
-kept whole.
+43,963 persons (people who died in year 2 kept, spending annualized and weighted
+by exposure), year-1 predictors and year-2 total spending in 2024 dollars. Every
+number is out of sample from cross-validation with primary sampling units kept
+whole; intervals are Rao-Wu PSU bootstrap, and model comparisons are paired on
+the same resamples.
 
 | Quantity | Value |
 |---|---:|
-| R², weighted least squares (the payment-formula form) | 0.125 (0.101 to 0.158) |
-| R², Tweedie LightGBM | 0.195 (0.161 to 0.245) |
-| Source of the boosting advantage | prior use and spending; on diagnoses alone both reach about 0.10 |
-| Underpayment of people needing ADL or IADL help, all models | $4,949 to $9,508 per person-year on a mean cost of $29,881 |
-| Stacked constrained estimator: gap and R² | $210 and 0.178 (from $5,142 and 0.190) |
-| Constrained linear formula: gap and R² | $805 and 0.096 (from $7,887 and 0.124) |
-| Spillover of both constraints onto enrollees 65 and over | overpaid by $2,156 to $3,342 |
-| Rise in payment per added chronic diagnosis code | WLS $1,292; Tweedie GLM $885; Tweedie LightGBM $693 |
+| R², unconstrained weighted least squares | 0.123 (0.102 to 0.155); 15.2% of predictions negative |
+| R², payment-form model (sex-specific age cells, non-negative coefficients) | 0.107 (0.085 to 0.142) |
+| R², Tweedie LightGBM | 0.187 (0.156 to 0.242); paired gain over WLS 0.064 (0.047 to 0.091) |
+| Boosting gain without prior use and spending (F2) | −0.002 (−0.006 to 0.003) |
+| Underpayment of people needing ADL or IADL help, all models | $4,545 to $9,583 per person-year on a mean cost of $31,329 |
+| Constrained stacked estimator: largest target gap and R² | $296 (interval $365 to $4,590) and 0.171, from $4,601 and 0.182 |
+| Constrained linear formula: largest target gap and R² | $724 ($220 to $5,515) and 0.099, from $7,747 and 0.123 |
+| Out-of-fold ADL gap under the constraints, 15 folds | −$13,043 to +$6,534 |
+| Spillover of the constraints | enrollees 65+ overpaid $2,242 to $3,362; uninsured underpaid up to $1,498 |
+| Next-year payment per added dollar of year-1 spending (F3) | Tweedie LightGBM $0.34; WLS $0.28; payment-form $0.01 |
+| Payment per added code, each model gamed on its own most lucrative codes (F2) | constrained WLS $17,469; payment-form $11,045; WLS $10,777; Tweedie LightGBM $5,510 |
+| Same, random chronic codes (F2) | payment-form $4,327; Tweedie LightGBM $2,907; WLS $2,806 |
 
 ## Interactive explorer
 

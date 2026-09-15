@@ -24,14 +24,17 @@ HEAD = """<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="An interactive explorer of how health-plan \
-payment formulas predict medical spending, which groups they pay too little \
-for, what fairness costs, and how they respond to more intensive diagnosis \
-coding, built on the Medical Expenditure Panel Survey.">
+<meta name="description" content="An interactive test of health-plan payment \
+formulas, from a linear model built the way payment formulas are to machine \
+learning: how well they predict medical spending, which groups they pay too \
+little for, what fairness costs, and how they respond to more intensive \
+diagnosis coding. Research benchmarks on the Medical Expenditure Panel Survey, \
+not the CMS formulas.">
 <meta name="author" content="Oluwatosin Dorcas Babalola">
-<meta property="og:title" content="The Payment Formula">
-<meta property="og:description" content="Who health-plan payment formulas \
-underpay, what it costs to fix, and how coding moves the money.">
+<meta property="og:title" content="The Payment Formula, Tested">
+<meta property="og:description" content="Research benchmarks on survey data: \
+who payment-style formulas underpay, what it costs to fix, and how coding \
+moves the money.">
 <meta property="og:type" content="website">
 <link rel="icon" href="data:image/svg+xml,\
 %3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E\

@@ -19,7 +19,7 @@ import config
 PERSON_COLS = ["DUPERSID", "PANEL", "YEARIND", "DIED", "LONGWT", "VARSTR",
                "VARPSU", "AGEY1X", "SEX", "RACETHX", "REGIONY1", "POVCATY1",
                "INSCOVY1", "TOTEXPY1", "TOTEXPY2", "TOTSLFY1", "OBTOTVY1",
-               "ERTOTY1", "IPDISY1", "RXTOTY1"]
+               "ERTOTY1", "IPDISY1", "RXTOTY1", "ENDRFMY2"]
 
 
 def _neg_to_nan(s):
@@ -61,7 +61,21 @@ def load_panel(panel, spec):
         "inpatient_y1": _neg_to_nan(d["IPDISY1"]),
         "rx_fills_y1": _neg_to_nan(d["RXTOTY1"]),
         "y": _neg_to_nan(d["TOTEXPY2"]) * config.CPI_TO_BASE[y1 + 1],
+        "months_y2": _neg_to_nan(d["ENDRFMY2"]).clip(1, 12),
     })
+    # A person who died in year 2 was in scope for part of the year. A payer
+    # pays for the months of coverage, so the outcome is annualized by the
+    # months in scope, from the reference-period end month; survivors have a
+    # full year.
+    # The weight is multiplied by the same fraction, as CMS does when it fits
+    # payment models on annualized costs: a person in scope for one month
+    # counts for a twelfth of a person-year, so an annualized amount cannot
+    # dominate the fit or the evaluation.
+    out["y_raw"] = out["y"]
+    out["exposure"] = np.where(out["died_y2"], out["months_y2"].fillna(12) / 12.0, 1.0)
+    if config.ANNUALIZE_DECEDENTS:
+        out["y"] = out["y"] / out["exposure"]
+        out["weight_panel"] = out["weight_panel"] * out["exposure"]
     out["any_function_help"] = ((out["adl_help"] == 1)
                                 | (out["iadl_help"] == 1)).astype(int)
     return out

@@ -1,7 +1,10 @@
 """
 Health-cost prediction models behind one interface: fit(X, y, w) and predict(X).
 
-  WLS            weighted least squares, the linear additive payment form
+  WLS            weighted least squares, the unconstrained linear form
+  PaymentWLS     the payment form: non-negative coefficients on conditions and
+                 use, free coefficients on the demographic cells, which is how
+                 CMS-HCC and HHS-HCC are estimated
   TweedieGLM     Tweedie GLM with log link, the actuarial standard for claims
   TwoPart        logistic model for any spending times a gamma GLM for amount
   ElasticNet     elastic net on raw spending
@@ -70,6 +73,61 @@ def _import_torch():
     import torch
     torch.set_num_threads(1)
     return torch
+
+
+class PaymentWLS:
+    """Weighted least squares in the form payment formulas are estimated: a
+    separate base rate for each age band and sex, and non-negative increments
+    for conditions, counts and use, with no intercept and no geography.
+
+    Every coefficient is non-negative, so no one is paid a negative amount and
+    a recorded condition can only add to a payment, which is how CMS-HCC is
+    built. Unconstrained least squares on the same features pays about one
+    person in seven a negative amount and gives negative coefficients to
+    diabetes and depression. Without feature names the model falls back to a
+    free intercept and non-negative slopes.
+    """
+
+    name = "Payment-form WLS (non-negative)"
+
+    def __init__(self):
+        self.columns_ = None
+        self.names_ = None
+
+    def set_columns(self, columns):
+        self.columns_ = list(columns)
+        return self
+
+    def _design(self, X):
+        X = np.asarray(X, float)
+        c = self.columns_
+        if c is None:
+            return np.column_stack([np.ones(len(X)), X])
+        fem = X[:, c.index("female")] if "female" in c else np.zeros(len(X))
+        ages = [i for i, n in enumerate(c) if n.startswith("age_") and not n.endswith("_x_female")]
+        other = [i for i, n in enumerate(c)
+                 if not (n.startswith("age_") or n == "female" or n.startswith("region_"))]
+        self.names_ = ([f"{c[i]}, male" for i in ages] + [f"{c[i]}, female" for i in ages]
+                       + [c[i] for i in other])
+        cells = [X[:, i] * (1 - fem) for i in ages] + [X[:, i] * fem for i in ages]
+        return np.column_stack(cells + [X[:, other]])
+
+    def fit(self, X, y, w, clusters=None):
+        from scipy.optimize import lsq_linear
+        A = self._design(X)
+        lo = np.zeros(A.shape[1])
+        if self.columns_ is None:
+            lo[0] = -np.inf
+        sw = np.sqrt(w / w.mean())
+        res = lsq_linear(A * sw[:, None], y * sw, bounds=(lo, np.inf), lsmr_tol="auto", max_iter=500)
+        self.coef_ = res.x
+        return self
+
+    def predict(self, X):
+        return self._design(X) @ self.coef_
+
+    def coefficients(self):
+        return dict(zip(self.names_ or range(len(self.coef_)), self.coef_))
 
 
 class WLS:
@@ -412,6 +470,7 @@ def registry(seed=DEFAULT_SEED):
     """Key -> constructor, in the order results are tabulated."""
     return {
         "wls": WLS,
+        "pwls": PaymentWLS,
         "tweedie": TweedieGLM,
         "twopart": TwoPart,
         "enet": ElasticNet,

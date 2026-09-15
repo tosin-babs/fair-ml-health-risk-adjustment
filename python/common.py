@@ -25,3 +25,12 @@ def folds(clusters, strata, repeats=None):
 
 def registry():
     return models.registry(seed=config.SEED)
+
+
+def make(key, columns=None):
+    """Construct a model by registry key, giving it the feature names when it
+    needs them (the payment-form WLS frees the demographic cells)."""
+    m = registry()[key]()
+    if columns is not None and hasattr(m, "set_columns"):
+        m.set_columns(columns)
+    return m

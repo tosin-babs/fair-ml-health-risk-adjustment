@@ -23,7 +23,8 @@ import config
 
 OUT = config.ROOT / "tool" / "model_data.json"
 T = config.TABLES
-FAMILY = {"WLS": "Linear", "Elastic net": "Linear", "Tweedie GLM": "Actuarial GLM",
+FAMILY = {"WLS": "Linear", "Payment-form WLS (non-negative)": "Payment formula", "Elastic net": "Linear",
+          "Tweedie GLM": "Actuarial GLM",
           "Two-part": "Actuarial GLM", "LightGBM (Tweedie)": "Boosted trees",
           "LightGBM (squared error)": "Boosted trees", "Random forest": "Trees",
           "Neural network": "Neural network", "CANN": "Neural network",
@@ -63,7 +64,8 @@ def main():
         },
         "accuracy": [{"model": r["model"], "family": FAMILY.get(r["model"], ""),
                       "r2": _f(r["r2"]), "r2_lo": _f(r["r2_lo"]), "r2_hi": _f(r["r2_hi"]),
-                      "cpm": _f(r["cpm"]), "top10": _f(r["top10_capture"])}
+                      "cpm": _f(r["cpm"]), "top10": _f(r["top10_capture"]),
+                      "negative_share": _f(r.get("negative_prediction_share", np.nan), 3)}
                      for _, r in acc.iterrows()],
         "groups": groups,
         "target_groups": [g for g in config.FAIR_TARGET_GROUPS if g in groups],
@@ -74,12 +76,17 @@ def main():
                          for _, r in comp.iterrows()],
         "frontier": [{"method": r["method"],
                       "lambda": None if not np.isfinite(r["lambda"]) else _f(r["lambda"], 2),
-                      "r2": _f(r["r2"]), "max_gap": _f(r["max_abs_nc_target"], 0),
+                      "r2": _f(r["r2"]), "r2_lo": _f(r.get("r2_lo", np.nan)), "r2_hi": _f(r.get("r2_hi", np.nan)),
+                      "max_gap": _f(r["max_abs_nc_target"], 0),
+                      "gap_lo": _f(r.get("max_abs_nc_target_lo", np.nan), 0),
+                      "gap_hi": _f(r.get("max_abs_nc_target_hi", np.nan), 0),
                       "nc": {c[4:]: _f(r[c], 0) for c in ncols}}
                      for _, r in fr.iterrows()],
-        "coding": [{"model": r["model"], "pool": r["pool"], "share": _f(r["share_affected"], 2),
+        "coding": [{"feature_set": r.get("feature_set", config.PRIMARY_FEATURE_SET),
+                    "model": r["model"], "pool": r["pool"], "share": _f(r["share_affected"], 2),
                     "codes": int(r["codes_added"]), "pct_rise": _f(r["pct_rise_total_predicted"], 3),
-                    "per_code": _f(r["dollars_per_added_code"], 0)}
+                    "per_code": _f(r["dollars_per_added_code"], 0),
+                    "per_code_sd": _f(r.get("dollars_per_code_fold_sd", np.nan), 0)}
                    for _, r in cod.iterrows()],
         "drivers": [{"rank": int(r["rank"]), "label": r["label"],
                      "shap": _f(r["mean_abs_shap"], 0), "sd": _f(r["sd_across_folds"], 0)}
@@ -97,7 +104,7 @@ def main():
             print(f"  WLS net compensation, {g}: ${w['nc'].iloc[0]:,.0f}")
     c = cod[(cod["pool"] == "chronic") & (cod["share_affected"] == 0.10) & (cod["codes_added"] == 1)]
     for _, r in c.iterrows():
-        print(f"  coding, {r['model']}: ${r['dollars_per_added_code']:,.0f} per code")
+        print(f"  coding, {r.get('feature_set', '')} {r['model']}: ${r['dollars_per_added_code']:,.0f} per code")
 
 
 if __name__ == "__main__":

@@ -30,6 +30,7 @@ STEPS = [
     ("Prospective dataset from the MEPS panels", "build_data"),
     ("Sample description", "describe"),
     ("RQ1: accuracy with survey-aware cross-validation", "benchmark"),
+    ("RQ1: paired comparisons and cell calibration", "compare"),
     ("RQ2: group compensation and the fairness frontier", "fair_frontier"),
     ("RQ3: drivers and their stability", "explain"),
     ("RQ4: coding sensitivity", "coding"),

@@ -73,7 +73,7 @@ class FairWLS:
             sol = np.linalg.solve(K, np.concatenate([2 * h, bG]))
             self.coef_ = sol[:A.shape[1]]
         else:
-            lam = self.lam * s2 / max(np.mean(bG ** 2), 1.0)
+            lam = self.lam * s2 / max(np.mean(bG ** 2), np.finfo(float).tiny)
             self.coef_ = np.linalg.solve(G + lam * aG.T @ aG, h + lam * aG.T @ bG)
         return self
 

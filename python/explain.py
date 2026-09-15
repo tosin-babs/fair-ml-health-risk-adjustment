@@ -43,7 +43,8 @@ def labels():
     def name(col):
         if col.startswith("ccsr_"):
             code = col[5:]
-            return f"{code} {lab.get(code, '')}".strip()
+            desc = " / ".join(lab.get(part, "") for part in code.split("+"))
+            return f"{code} {desc}".strip()
         return col
     return name
 

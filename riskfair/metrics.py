@@ -91,23 +91,38 @@ def fairness_summary(groups):
             "max_abs_pr_gap": max(abs(g["pr"] - 1) for g in groups.values())}
 
 
-def cluster_bootstrap(stat, y, p, w, clusters, strata, reps=500, seed=2026):
-    """Bootstrap a scalar statistic over PSUs resampled within strata."""
-    rng = np.random.default_rng(seed)
-    clusters, strata = np.asarray(clusters), np.asarray(strata)
+def bootstrap_index(clusters, strata, rng, rao_wu=True):
+    """One resample of PSUs within strata, as (row index, weight multiplier).
+
+    Rao and Wu (1988): drawing n_h PSUs with replacement from a stratum of
+    n_h understates the design variance by (n_h - 1)/n_h, which is a half in
+    the 327 two-PSU strata here. Drawing n_h - 1 and multiplying their
+    weights by n_h/(n_h - 1) removes that bias.
+    """
     idx_by_cluster = {}
     for i, c_ in enumerate(clusters):
         idx_by_cluster.setdefault(c_, []).append(i)
     stratum_clusters = {}
     for c_ in idx_by_cluster:
         stratum_clusters.setdefault(strata[idx_by_cluster[c_][0]], []).append(c_)
+    idx, mult = [], []
+    for cs in stratum_clusters.values():
+        n_h = len(cs)
+        m = n_h - 1 if (rao_wu and n_h > 1) else n_h
+        f = n_h / m if m else 1.0
+        for j in rng.choice(n_h, size=m, replace=True):
+            rows = idx_by_cluster[cs[j]]
+            idx.extend(rows)
+            mult.extend([f] * len(rows))
+    return np.asarray(idx), np.asarray(mult)
+
+
+def cluster_bootstrap(stat, y, p, w, clusters, strata, reps=500, seed=2026, rao_wu=True):
+    """Bootstrap a scalar statistic over PSUs resampled within strata."""
+    rng = np.random.default_rng(seed)
+    clusters, strata = np.asarray(clusters), np.asarray(strata)
     draws = []
     for _ in range(reps):
-        idx = []
-        for s_, cs in stratum_clusters.items():
-            pick = rng.choice(len(cs), size=len(cs), replace=True)
-            for j in pick:
-                idx.extend(idx_by_cluster[cs[j]])
-        idx = np.asarray(idx)
-        draws.append(stat(y[idx], p[idx], w[idx], idx))
+        idx, mult = bootstrap_index(clusters, strata, rng, rao_wu)
+        draws.append(stat(y[idx], p[idx], w[idx] * mult, idx))
     return np.asarray(draws)

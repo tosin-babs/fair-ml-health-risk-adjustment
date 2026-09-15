@@ -72,18 +72,32 @@ def main():
 
     t = pd.read_csv(T / "table2_accuracy.csv")
     parts += [caption(2, "Out-of-sample accuracy by model, primary feature set (F3).",
-                      "Five survey folds, three repeats. Intervals from a bootstrap over "
-                      "PSUs within strata applied to repeat-averaged out-of-fold "
-                      "predictions. CPM is Cumming's prediction measure. Top-10% capture "
-                      "is the weighted share of the true top decile of spenders placed "
-                      "in the model's top decile."),
-              render(t, ["model", "r2", "r2_lo", "r2_hi", "cpm", "mae",
-                         "pr_bottom_decile", "pr_top_decile", "top10_capture"],
-                     [None, num(3), num(3), num(3), num(3), dollars(), num(2),
-                      num(2), share(0)],
-                     ["Model", "R²", "95% low", "95% high", "CPM", "MAE",
-                      "PR bottom decile", "PR top decile", "Top-10% capture"])]
+                      "Five survey folds, three repeats. Each metric is the mean over repeats of a single "
+                      "fitted model's out-of-fold value, which is what one deployed model achieves; the "
+                      "ensemble column averages the three repeats' predictions first. Intervals from a "
+                      "Rao-Wu rescaled bootstrap over PSUs within strata (200 resamples). CPM is Cumming's "
+                      "prediction measure. Top-10% capture is the weighted share of the true top decile of "
+                      "spenders placed in the model's top decile. The last column is the weighted share of "
+                      "people with a negative predicted payment."),
+              render(t, ["model", "r2", "r2_lo", "r2_hi", "r2_ensemble", "cpm", "mae",
+                         "pr_bottom_decile", "pr_top_decile", "top10_capture", "negative_prediction_share"],
+                     [None, num(3), num(3), num(3), num(3), num(3), dollars(), num(2),
+                      num(2), share(0), share(1)],
+                     ["Model", "R²", "95% low", "95% high", "R², 3-fit ensemble", "CPM", "MAE",
+                      "PR bottom decile", "PR top decile", "Top-10% capture", "Negative predictions"])]
 
+    if _exists("table2d_paired_differences.csv"):
+        t = pd.read_csv(T / "table2d_paired_differences.csv")
+        parts += [caption("2b", "Paired differences from WLS in out-of-sample accuracy.",
+                          "Every model is evaluated on the same 500 resamples of PSUs within strata, so "
+                          "the interval is for the difference itself. The last column is the share of "
+                          "resamples in which the model's R² does not exceed WLS's. Negative MAE "
+                          "differences mean smaller errors than WLS."),
+                  render(t, ["feature_set", "model", "d_r2", "d_r2_lo", "d_r2_hi", "p_r2_le_0", "d_cpm",
+                             "d_mae", "d_mae_lo", "d_mae_hi"],
+                         [None, None, num(3), num(3), num(3), num(3), num(3), dollars(), dollars(), dollars()],
+                         ["Features", "Model", "ΔR²", "95% low", "95% high", "Share ΔR² ≤ 0", "ΔCPM",
+                          "ΔMAE", "95% low", "95% high"])]
     t = pd.read_csv(T / "table2b_feature_sets.csv")
     wide = t.pivot_table(index="model", columns="feature_set", values="r2").reset_index()
     parts += [caption(3, "Out-of-sample R² by feature set.",
@@ -95,18 +109,28 @@ def main():
                      ["Model"] + list(config.FEATURE_SETS))]
 
     t = pd.read_csv(T / "table3_group_fairness.csv")
-    key = ["WLS", "Tweedie GLM", "LightGBM (Tweedie)", "CANN"]
+    key = ["WLS", "Payment-form WLS (non-negative)", "Tweedie GLM", "LightGBM (Tweedie)", "CANN"]
     t = t[t["model"].isin(key)].copy()
     t["cell"] = t.apply(lambda r: f"{dollars()(r['nc'])} ({dollars()(r['nc_lo'])}, "
-                                  f"{dollars()(r['nc_hi'])})", axis=1)
+                                  f"{dollars()(r['nc_hi'])}); PR {r['pr']:.2f}", axis=1)
     wide = t.pivot_table(index="group", columns="model", values="cell",
                          aggfunc="first").reindex(columns=key).reset_index()
     parts += [caption(4, "Net compensation by group: predicted minus observed "
-                         "spending, $ per person-year (95% interval).",
+                         "spending, $ per person-year (95% interval), and predictive ratio.",
                       "Negative values mean the model pays less for the group than "
-                      "the group costs. Race and ethnicity are used for evaluation "
+                      "the group costs. Means over repeats of single fits; Rao-Wu PSU "
+                      "bootstrap intervals. Race and ethnicity are used for evaluation "
                       "only and never as model inputs."),
               render(wide, ["group"] + key, [None] * (len(key) + 1), ["Group"] + key)]
+    d = t[t["model"] != "WLS"].copy()
+    d["cell"] = d.apply(lambda r: f"{dollars()(r['nc_minus_wls'])} ({dollars()(r['nc_minus_wls_lo'])}, "
+                                  f"{dollars()(r['nc_minus_wls_hi'])})", axis=1)
+    wd = d.pivot_table(index="group", columns="model", values="cell", aggfunc="first").reset_index()
+    dk = [k for k in key if k != "WLS" and k in wd.columns]
+    parts += [caption("4b", "Difference in net compensation from WLS, by group (95% paired interval).",
+                      "Same PSU resamples for both models, so the interval is for the difference itself. "
+                      "Positive values mean the model pays the group more than WLS does."),
+              render(wd, ["group"] + dk, [None] * (len(dk) + 1), ["Group"] + dk)]
 
     t = pd.read_csv(T / "table3b_frontier.csv")
     ncols = [c for c in t.columns if c.startswith("nc::")]
@@ -115,11 +139,26 @@ def main():
                       "Penalized and constrained estimators target the three groups "
                       "marked in the text; the other groups show spillover. Stacked "
                       "LightGBM enters a cross-fitted LightGBM score with the features "
-                      "into the fair regression. One repeat of the survey folds."),
-              render(t, ["method", "lambda_label", "r2", "cpm", "max_abs_nc_target"] + ncols,
-                     [None, None, num(3), num(3), dollars()] + [dollars()] * len(ncols),
-                     ["Method", "λ", "R²", "CPM", "Max |NC| target"]
+                      "into the fair regression. All three repeats of the survey folds; "
+                      "metrics are means over repeats of out-of-fold values, with Rao-Wu "
+                      "PSU bootstrap intervals for R² and the largest target-group gap."),
+              render(t, ["method", "lambda_label", "r2", "r2_lo", "r2_hi", "max_abs_nc_target",
+                         "max_abs_nc_target_lo", "max_abs_nc_target_hi"] + ncols,
+                     [None, None, num(3), num(3), num(3), dollars(), dollars(), dollars()]
+                     + [dollars()] * len(ncols),
+                     ["Method", "λ", "R²", "low", "high", "Max |NC| target", "low", "high"]
                      + [c[4:] for c in ncols])]
+    if _exists("table3c_constraint_by_fold.csv"):
+        f = pd.read_csv(T / "table3c_constraint_by_fold.csv")
+        fcols = [c for c in f.columns if c.startswith(("in_sample::", "out_of_fold::"))]
+        parts += [caption("5b", "Constrained estimators fold by fold: net compensation in the training data "
+                                "and out of fold.",
+                          "In the training data the constraint holds exactly for the target groups. Out of fold "
+                          "it does not; the pooled values in Table 5 average across these folds."),
+                  render(f, ["method", "repeat", "fold"] + fcols,
+                         [None, num(0), num(0)] + [dollars()] * len(fcols),
+                         ["Method", "Repeat", "Fold"] + [c.replace("in_sample::", "in: ").replace("out_of_fold::", "out: ")
+                                                         for c in fcols])]
 
     t = pd.read_csv(T / "table4_importance.csv").head(20)
     s = pd.read_csv(T / "table4b_stability.csv")
@@ -137,22 +176,43 @@ def main():
                       "CANN R² loss"])]
 
     t = pd.read_csv(T / "table5_coding_sensitivity.csv")
-    main_ = t[(t["share_affected"] == 0.10)]
-    wide = main_.pivot_table(index="model", columns=["pool", "codes_added"],
-                             values="dollars_per_added_code")
-    wide.columns = [f"{p}, {k} code{'s' if k > 1 else ''}" for p, k in wide.columns]
-    wide = wide.reset_index()
-    tot = main_[(main_["pool"] == "chronic") & (main_["codes_added"] == 1)].set_index("model")
-    wide["pct_rise"] = wide["model"].map(tot["pct_rise_total_predicted"])
-    vcols = [c for c in wide.columns if c not in ("model", "pct_rise")]
-    parts += [caption(7, "Coding sensitivity: rise in predicted spending per added "
-                         "condition code, 10% of people affected.",
-                      "Codes the person did not have are switched on; use and spending "
-                      "are unchanged. The last column is the rise in total predicted "
-                      "spending when 10% of people gain one chronic code."),
-              render(wide, ["model"] + vcols + ["pct_rise"],
-                     [None] + [dollars()] * len(vcols) + [pct(2)],
-                     ["Model"] + vcols + ["Total rise, 1 chronic code"])]
+    main_ = t[(t["share_affected"] == 0.10) & (t["codes_added"] == 1)].copy()
+    main_["cell"] = main_.apply(lambda r: f"{dollars()(r['dollars_per_added_code'])} "
+                                          f"(sd {dollars()(r['dollars_per_code_fold_sd'])})", axis=1)
+    wide = main_.pivot_table(index=["feature_set", "model"], columns="pool", values="cell",
+                             aggfunc="first").reset_index()
+    pools = [p for p in ("prevalence", "chronic", "targeted", "own-targeted") if p in wide.columns]
+    parts += [caption(7, "Coding sensitivity: rise in predicted spending per added condition code, "
+                         "10% of people gain one code (standard deviation across folds).",
+                      "Codes the person did not have are switched on; use and spending are unchanged. "
+                      "Prevalence: drawn in proportion to prevalence. Chronic: from payment-relevant chronic "
+                      "categories. Targeted: the five flags with the largest payment-form coefficients. "
+                      "Own-targeted: the five flags that raise that model's own prediction most, found on "
+                      "its training data. F2 excludes prior use and spending; F3 includes them."),
+              render(wide, ["feature_set", "model"] + pools, [None] * (2 + len(pools)),
+                     ["Features", "Model"] + [p.capitalize() for p in pools])]
+    if _exists("table5c_own_targeted_flags.csv"):
+        o = pd.read_csv(T / "table5c_own_targeted_flags.csv")
+        s_ = (o.groupby(["feature_set", "model", "flag"])
+               .agg(folds=("fold", "nunique"), gain=("training_gain", "mean")).reset_index()
+               .sort_values(["feature_set", "model", "folds", "gain"], ascending=[True, True, False, False]))
+        s_["cell"] = s_.apply(lambda r: f"{r['flag']} ({int(r['folds'])}, {dollars()(r['gain'])})", axis=1)
+        top = (s_.groupby(["feature_set", "model"]).head(5).groupby(["feature_set", "model"])["cell"]
+                 .agg("; ".join).reset_index())
+        parts += [caption("7c", "Own-targeted pools: the flags that raise each model's prediction most.",
+                          "For each fold, the five flags with the largest mean rise in that model's prediction "
+                          "when switched on for 3,000 training persons. Listed are the five chosen most often, "
+                          "with the number of folds (of five) and the mean training gain per code."),
+                  render(top, ["feature_set", "model", "cell"], [None, None, None],
+                         ["Features", "Model", "Flag (folds chosen, mean gain)"])]
+    if _exists("table5b_use_sensitivity.csv"):
+        u = pd.read_csv(T / "table5b_use_sensitivity.csv")
+        parts += [caption("7b", "Use sensitivity: next-year payment per added dollar of year-1 spending.",
+                          "Year-1 spending raised by 20% for 10% of held-out people, nothing else changed. "
+                          "Only feature sets with prior spending respond."),
+                  render(u, ["feature_set", "model", "payment_per_dollar_of_use", "fold_sd", "pct_rise_total_predicted"],
+                         [None, None, num(3), num(3), pct(2)],
+                         ["Features", "Model", "$ per $ of year-1 spending", "SD across folds", "Total rise"])]
 
     t = pd.read_csv(T / "table6_robustness.csv")
     parts += [caption(8, "Robustness: each row changes one decision.",
@@ -180,13 +240,21 @@ def main():
               render(wide, ["decile"] + mcols, [num(0)] + [num(2)] * len(mcols),
                      ["Decile"] + mcols)]
 
+    if _exists("table2f_cell_calibration.csv"):
+        t = pd.read_csv(T / "table2f_cell_calibration.csv")
+        wide = t.pivot_table(index=["age_band", "sex"], columns="model", values="predictive_ratio").reset_index()
+        mcols = [c for c in wide.columns if c not in ("age_band", "sex")]
+        parts += [caption("A2b", "Predictive ratio by age band and sex, the cells of a payment formula."),
+                  render(wide, ["age_band", "sex"] + mcols, [None, None] + [num(3)] * len(mcols),
+                         ["Age", "Sex"] + mcols)]
+
     t = pd.read_csv(T / "table5_coding_sensitivity.csv")
     parts += [caption("A3", "Coding sensitivity, full grid."),
-              render(t, ["model", "pool", "share_affected", "codes_added",
-                         "pct_rise_total_predicted", "dollars_per_added_code"],
-                     [None, None, share(0), num(0), pct(2), dollars()],
-                     ["Model", "Pool", "Share affected", "Codes added",
-                      "Total rise", "$ per code"])]
+              render(t, ["feature_set", "model", "pool", "share_affected", "codes_added",
+                         "pct_rise_total_predicted", "dollars_per_added_code", "dollars_per_code_fold_sd"],
+                     [None, None, None, share(0), num(0), pct(2), dollars(), dollars()],
+                     ["Features", "Model", "Pool", "Share affected", "Codes added",
+                      "Total rise", "$ per code", "SD across folds"])]
 
     t = pd.read_csv(T / "table4c_sense_checks.csv")
     g = t.groupby("feature")["spearman_value_vs_shap"].agg(["mean", "min", "max"]).reset_index()

@@ -52,7 +52,11 @@ FUNCTION_ROUND = 1
 
 # People who died in year 2 have partial-year outcomes. Excluded from the
 # primary sample; included with an indicator in robustness.
-EXCLUDE_DIED = True
+EXCLUDE_DIED = False
+# Decedents' year-2 spending is annualized by their months in scope, so the
+# outcome is a rate a payer would pay for the months of coverage. Excluding
+# decedents is the robustness variant.
+ANNUALIZE_DECEDENTS = True
 
 # ------------------------------------------------------------- features ----
 AGE_BANDS = [(0, 4), (5, 17), (18, 24), (25, 34), (35, 44), (45, 54),
@@ -89,6 +93,7 @@ FAIRNESS_GROUPS = {
     "Mental health condition": ("any_mbd", "eq", 1),
     "Age 65 and over": ("age", "ge", 65),
     "Uninsured all year": ("inscov", "eq", 3),
+    "Died in year 2": ("died", "eq", 1),
 }
 MIN_GROUP_N = 100
 
@@ -105,7 +110,7 @@ CODING_ADDED = (1, 2)
 # Where added codes are drawn from: "prevalence" (proportional to observed
 # prevalence among people with any condition) or "chronic" (restricted to the
 # chronic categories listed in features.CHRONIC_CCSR).
-CODING_POOLS = ("prevalence", "chronic")
+CODING_POOLS = ("prevalence", "chronic", "targeted")
 
 # ------------------------------------------------------------- plotting ----
 FIG_DPI = 300
