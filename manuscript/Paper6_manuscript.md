@@ -251,8 +251,6 @@ A public benchmark shows that flexible models predict next-year health spending 
 
 **Ethics.** The analysis uses de-identified public survey data and did not require ethical approval.
 
-**AI-assistance disclosure.** Generative AI (Claude, Anthropic) was used to assist with code development, code review and language editing. The author designed the study, specified all models and parameters, verified and interpreted all results, and takes full responsibility for the content. AI systems are not authors.
-
 **CRediT statement.** **Oluwatosin Dorcas Babalola**: conceptualization, methodology, software, formal analysis, data curation, writing (original draft), writing (review and editing).
 
 ---
