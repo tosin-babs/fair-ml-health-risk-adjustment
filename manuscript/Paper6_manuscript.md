@@ -253,7 +253,6 @@ A public benchmark shows that flexible models predict next-year health spending 
 
 **Ethics.** The analysis uses de-identified public survey data and did not require ethical approval.
 
-**CRediT statement.** **Oluwatosin Dorcas Babalola**: conceptualization, methodology, software, formal analysis, data curation, writing (original draft), writing (review and editing). **Eniola Zainab Olamilekan**: roles to be confirmed by the authors. **Temitope Ologunbaba**: roles to be confirmed by the authors.
 
 ---
 
