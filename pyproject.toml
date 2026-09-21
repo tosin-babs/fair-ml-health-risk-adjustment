@@ -8,7 +8,7 @@ version = "0.3.0"
 description = "Accuracy, fairness, interpretability and coding sensitivity for health-cost prediction and risk adjustment"
 readme = "README.md"
 license = { text = "MIT" }
-authors = [{ name = "Oluwatosin Dorcas Babalola", email = "obabalola4@student.gsu.edu" }, { name = "Eniola Zainab Olamilekan" }, { name = "Temitope Ologunbaba" }]
+authors = [{ name = "Oluwatosin Dorcas Babalola", email = "obabalola4@student.gsu.edu" }, { name = "Chisom Adiegwu" }, { name = "Eniola Zainab Olamilekan" }]
 requires-python = ">=3.10"
 dependencies = [
     "numpy>=1.24",

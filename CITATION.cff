@@ -6,12 +6,12 @@ authors:
     given-names: Oluwatosin Dorcas
     email: obabalola4@student.gsu.edu
     affiliation: "Department of Actuarial Science and Quantitative Risk Analysis and Management, Georgia State University, Atlanta, GA, USA"
+  - family-names: Adiegwu
+    given-names: Chisom
+    affiliation: "Department of Actuarial Science and Quantitative Risk Analysis and Management, Georgia State University, Atlanta, GA, USA"
   - family-names: Olamilekan
     given-names: Eniola Zainab
     affiliation: "Department of Actuarial Science and Quantitative Risk Analysis and Management, Georgia State University, Atlanta, GA, USA"
-  - family-names: Ologunbaba
-    given-names: Temitope
-    affiliation: "Faculty of Engineering, Federal University of Technology, Akure, Nigeria"
 version: 0.3.0
 license: MIT
 repository-code: "https://github.com/tosin-babs/fair-ml-health-risk-adjustment"
