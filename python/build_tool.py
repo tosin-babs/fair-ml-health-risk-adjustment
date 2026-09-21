@@ -30,7 +30,7 @@ learning: how well they predict medical spending, which groups they pay too \
 little for, what fairness costs, and how they respond to more intensive \
 diagnosis coding. Research benchmarks on the Medical Expenditure Panel Survey, \
 not the CMS formulas.">
-<meta name="author" content="Oluwatosin Dorcas Babalola">
+<meta name="author" content="Oluwatosin Dorcas Babalola, Eniola Zainab Olamilekan, Temitope Ologunbaba">
 <meta property="og:title" content="The Payment Formula">
 <meta property="og:description" content="Research benchmarks on survey data: \
 who payment-style formulas underpay, what it costs to fix, and how coding \

@@ -1,8 +1,10 @@
 # Interpretable and Fair Machine Learning for Health-Cost Prediction and Risk Adjustment: A Reproducible Benchmark on Public Data and an Open-Source Toolkit
 
-**Oluwatosin Dorcas Babalola**¹ *(corresponding author)*
+**Oluwatosin Dorcas Babalola**¹ *(corresponding author)*, **Eniola Zainab Olamilekan**¹, **Temitope Ologunbaba**²
 
 ¹ Department of Actuarial Science and Quantitative Risk Analysis and Management, Georgia State University, Atlanta, GA, USA. obabalola4@student.gsu.edu
+
+² Faculty of Engineering, Federal University of Technology, Akure, Nigeria.
 
 **Word count.** 7,105 excluding abstract, tables, figure captions and references.
 
@@ -251,7 +253,7 @@ A public benchmark shows that flexible models predict next-year health spending 
 
 **Ethics.** The analysis uses de-identified public survey data and did not require ethical approval.
 
-**CRediT statement.** **Oluwatosin Dorcas Babalola**: conceptualization, methodology, software, formal analysis, data curation, writing (original draft), writing (review and editing).
+**CRediT statement.** **Oluwatosin Dorcas Babalola**: conceptualization, methodology, software, formal analysis, data curation, writing (original draft), writing (review and editing). **Eniola Zainab Olamilekan**: roles to be confirmed by the authors. **Temitope Ologunbaba**: roles to be confirmed by the authors.
 
 ---
 

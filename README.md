@@ -43,12 +43,19 @@ pipeline wrote; no person-level data leaves the pipeline.
 
 ## The package
 
+Version 0.3.0 adds two modules written for the follow-up paper
+[adversarial-ml-risk-adjustment](https://github.com/tosin-babs/adversarial-ml-risk-adjustment):
+`riskfair.adversary`, a plan that best-responds to any formula by coding and
+by selection and a loop that trains a formula against it, and
+`riskfair.robust`, payment-form formulas with a coding penalty, caps at
+incremental cost, and a worst-subgroup (CVaR) penalty on expected mispricing.
+
 ```bash
 pip install -e .          # from this directory; extras: .[neural] .[explain] .[dev]
 ```
 
 ```python
-from riskfair import surveycv, models, metrics, fairness, coding
+from riskfair import surveycv, models, metrics, fairness, coding, adversary, robust
 
 folds = surveycv.survey_folds(psu, stratum, n_splits=5, repeats=3)
 m = models.GBM("tweedie").fit(X[tr], y[tr], w[tr], clusters=psu[tr])
@@ -108,9 +115,11 @@ libomp` is needed for LightGBM.
 - SHAP values are for the squared-error LightGBM, which has the same accuracy as
   the Tweedie one and reports in dollars.
 
-## Author
+## Authors
 
-Oluwatosin Dorcas Babalola, Georgia State University, obabalola4@student.gsu.edu
+- Oluwatosin Dorcas Babalola, Department of Actuarial Science and Quantitative Risk Analysis and Management, Georgia State University, Atlanta, GA, USA, obabalola4@student.gsu.edu (corresponding)
+- Eniola Zainab Olamilekan, Department of Actuarial Science and Quantitative Risk Analysis and Management, Georgia State University, Atlanta, GA, USA
+- Temitope Ologunbaba, Faculty of Engineering, Federal University of Technology, Akure, Nigeria
 
 ## License
 

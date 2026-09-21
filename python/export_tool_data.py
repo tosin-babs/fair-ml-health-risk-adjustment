@@ -53,7 +53,7 @@ def main():
             "population_millions": _f(t1["Weighted population, millions a year"], 1),
             "dollars": "2024 dollars, total spending from all payers",
             "paper": "Interpretable and Fair Machine Learning for Health-Cost Prediction and Risk Adjustment",
-            "author": "Oluwatosin Dorcas Babalola",
+            "author": "Oluwatosin Dorcas Babalola, Eniola Zainab Olamilekan, Temitope Ologunbaba",
             "repository": "https://github.com/tosin-babs/fair-ml-health-risk-adjustment",
         },
         "facts": {
