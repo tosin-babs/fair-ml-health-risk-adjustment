@@ -230,6 +230,12 @@ class DROPaymentWLS(PaymentWLS):
         self.objective_ = fun
         return self
 
+    def take_rows(self, idx):
+        """Restrict the row-aligned reference to the rows about to be fitted."""
+        if self.reference is not None:
+            self.reference = self.reference[idx]
+        return self
+
     def worst_groups(self, X, y, w):
         """Largest subgroup underpayment and overpayment at this alpha, in
         dollars, against y (pass the reference expected cost for the

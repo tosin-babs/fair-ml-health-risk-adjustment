@@ -319,7 +319,10 @@ const F = D.facts;
   const idx = {};
   G.cells.forEach(c => { idx[c[0] + "|" + c[1] + "|" + c[2] + "|" + c[3]] = c; });
   const cell = (k, r, c, t) => idx[k + "|" + r + "|" + c + "|" + t];
-  const label = Object.fromEntries(G.formulas.map(f => [f.key, f.label + (f.trained ? " (trained)" : "")]));
+  const SHORT = {cms: "CMS-style formula", cms_cap: "CMS-style, codes capped at cost", cms_pen_1: "Coding penalty",
+    cms_dro_5: "Worst-subgroup penalty", cms_cap_pen_dro_1: "Caps + penalty + worst-subgroup", gbm: "Boosted model",
+    fair: "Fair stacked model (section 03)", cms_pen_adv: "Coding penalty, trained", cms_robust_adv: "Caps + penalty + worst-subgroup, trained"};
+  const label = Object.fromEntries(G.formulas.map(f => [f.key, SHORT[f.key] || (f.label + (f.trained ? " (trained)" : ""))]));
   const near = (arr, v) => arr.reduce((b, x, i) => Math.abs(x - v) < Math.abs(arr[b] - v) ? i : b, 0);
   function reset(){
     $("g-reach").value = near(R, G.calibrated.reach);
@@ -342,17 +345,18 @@ const F = D.facts;
     const rows = G.formulas.map(f => ({f, x: cell(f.key, r, c, t)})).filter(o => o.x).sort((a, b) => a.x[4] - b.x[4]);
     const cms = cell("cms", r, c, t), best = rows[0];
     $("g-sentence").innerHTML = `At these settings the plan takes <strong>${money(cms[4] / 1000)}</strong> per enrollee a year from the CMS-style formula (${cms[7].toFixed(1)}% of what it pays). The least gameable formula here, ${label[best.f.key]}, leaks <strong>${money(best.x[4] / 1000)}</strong>.`;
-    const W = 900, rowH = 30, left = 330, top = 22, H = top + rows.length * rowH + 40;
+    const W = 900, rowH = 30, left = 300, top = 34, H = top + rows.length * rowH + 20;
     const lo = Math.min(0, ...rows.map(o => Math.min(o.x[5], o.x[6], o.x[4]))), hi = Math.max(...rows.map(o => Math.max(o.x[5], 0) + Math.max(o.x[6], 0))) * 1.08 || 1;
     const X = v => left + (W - left - 90) * (v - lo) / (hi - lo);
     const svg = el("svg", {viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "What the plan extracts from each formula"});
-    el("text", {x: left, y: 14}, svg, "per 1,000 enrollees a year:  coding");
-    el("rect", {x: left + 258, y: 5, width: 12, height: 10, fill: "#b8621b"}, svg);
-    el("text", {x: left + 280, y: 14}, svg, "selection");
-    el("rect", {x: left + 358, y: 5, width: 12, height: 10, fill: "#2c5d8a"}, svg);
+    el("text", {x: left, y: 16}, svg, "per 1,000 enrollees a year");
+    el("rect", {x: left + 200, y: 7, width: 12, height: 10, fill: "#b8621b"}, svg);
+    el("text", {x: left + 218, y: 16}, svg, "coding");
+    el("rect", {x: left + 280, y: 7, width: 12, height: 10, fill: "#2c5d8a"}, svg);
+    el("text", {x: left + 298, y: 16}, svg, "selection");
     rows.forEach((o, i) => {
       const y = top + i * rowH + rowH / 2, x = o.x;
-      el("text", {x: left - 10, y: y + 4, "text-anchor": "end", "font-weight": o.f.key === pick ? 600 : 400}, svg, label[o.f.key].length > 46 ? label[o.f.key].slice(0, 45) + "…" : label[o.f.key]);
+      el("text", {x: left - 10, y: y + 4, "text-anchor": "end", "font-weight": o.f.key === pick ? 600 : 400}, svg, label[o.f.key]);
       const cod = Math.max(x[5], 0), sel = Math.max(x[6], 0);
       el("rect", {x: X(0), y: y - 9, width: X(cod) - X(0), height: 18, fill: "#b8621b"}, svg);
       el("rect", {x: X(cod), y: y - 9, width: X(cod + sel) - X(cod), height: 18, fill: "#2c5d8a"}, svg);
@@ -365,7 +369,7 @@ const F = D.facts;
       G.groups.map((g, j) => `<tr><td>${g}</td><td>${money(x0[8 + j])}</td><td>${money(x[8 + j])}</td><td>${((x[8 + NG + j] - 1) * 100 >= 0 ? "+" : "") + ((x[8 + NG + j] - 1) * 100).toFixed(1)}%</td></tr>`).join("") +
       "</tbody></table>";
     $("g-note").innerHTML = `Per person-year, for ${label[pick]} (out-of-sample R² ${G.formulas.find(f => f.key === pick).r2.toFixed(3)} with no gaming). ` +
-      `The plan cannot see functional status, age or income; it moves these groups only through what its cost model predicts. ${G.note} ` +
+      `The plan's cost model sees functional status and income from its health risk assessment, which the formulas do not; it never sees race. ${G.note} ` +
       `From the paper <em>${G.paper}</em>: <a href="${G.repository}">${G.repository.replace("https://", "")}</a>.`;
   }
   ["g-reach", "g-cost", "g-tilt"].forEach(id => $(id).oninput = draw);

@@ -257,3 +257,37 @@ def test_selection_split_adds_up():
     added, s, Xc = plan.respond(f.predict, X, w, COLS)
     e = adversary.extraction(f.predict, X, Xc, w, s, y, added, 0.0)
     assert abs(e["selection_ungamed"] + e["selection_interaction"] - e["selection"]) < 1e-6 * max(1, abs(e["selection"]))
+
+
+def test_audit_cost_is_charged():
+    X, y, w = synthetic(n=4000)
+    f = PaymentWLS().set_columns(COLS).fit(X, y, w)
+    base = dict(cost_per_code=100.0, max_codes=1, reach=0.5, tilt=0.0, pool=POOL,
+                count_col="n_conditions", system_col="n_body_systems")
+    plan = adversary.Plan(audit=3000.0, **base)
+    added, _ = plan.code(f.predict, X, w, COLS)
+    n_codes = added.sum()
+    assert plan.row_cost_.sum() > 100.0 * n_codes          # audit adds to the flat cost
+    assert np.all(plan.row_cost_[added.sum(axis=1) == 0] == 0)
+
+
+class _Stored:
+    def __init__(self, values):
+        self.values = np.asarray(values, float)
+
+    def predict(self, X):
+        assert len(X) == len(self.values)
+        return self.values
+
+
+def test_cross_fitted_training_runs_and_keeps_size():
+    X, y, w = synthetic(n=3000)
+    groups = np.arange(len(y)) // 10
+    make = lambda: PaymentWLS().set_columns(COLS)  # noqa: E731
+    plan = adversary.Plan(cost_model=_Stored(np.full(len(y), float(np.average(y, weights=w)))),
+                          cost_per_code=200.0, max_codes=1, reach=0.2, tilt=0.2, pool=POOL,
+                          count_col="n_conditions", system_col="n_body_systems")
+    f, path = adversary.train(make, plan, X, y, w, COLS, iters=4, tol=1e-6, groups=groups, seed=1)
+    assert len(path) >= 1 and np.isfinite(path[-1]["extraction"])
+    halves = adversary._halves(groups, 1)
+    assert not set(groups[halves[0]]) & set(groups[halves[1]])

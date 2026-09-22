@@ -144,6 +144,19 @@ class Plan:
         self.pool, self.plausible = list(pool), plausible
         self.count_col, self.system_col, self.prefix = count_col, system_col, prefix
 
+    def subset(self, idx):
+        """The same plan restricted to rows idx (plausibility and the stored
+        cost predictions subset alongside)."""
+        import copy
+        p = copy.copy(self)
+        if self.plausible is not None:
+            p.plausible = self.plausible[idx]
+        cm = self.cost_model
+        if cm is not None and hasattr(cm, "values"):
+            p.cost_model = copy.copy(cm)
+            p.cost_model.values = np.asarray(cm.values)[idx]
+        return p
+
     # ------------------------------------------------------------ coding --
     def code(self, predict, X, w, columns, plausible=None, G=None):
         """Which codes the plan adds: (n, len(pool)) bool, and the gain matrix.
@@ -155,6 +168,7 @@ class Plan:
             G = gain_matrix(predict, X, columns, self.pool, P, self.count_col,
                             self.system_col, self.prefix)
         added = np.zeros(G.shape, bool)
+        self.row_cost_ = np.zeros(G.shape[0])
         if not self.pool or self.reach <= 0 or self.max_codes <= 0:
             return added, G
         if self.audit > 0:
@@ -174,6 +188,7 @@ class Plan:
             for q, ok in zip(order[r], take[r]):
                 if ok:
                     added[r, q] = True
+        self.row_cost_ = self.cost_per_code * added.sum(axis=1).astype(float)
         return added, G
 
     def _code_with_audit(self, G, w):
@@ -186,6 +201,7 @@ class Plan:
         wshare = w / w.sum()
         used = np.zeros(J)                       # weight share already given each code
         added = np.zeros(G.shape, bool)
+        self.row_cost_ = np.zeros(n)             # what the plan pays for each person's codes
         best = np.where(np.isnan(G), -np.inf, G).max(axis=1)
         order = np.argsort(-best)
         covered = 0.0
@@ -200,6 +216,7 @@ class Plan:
                 if net[j] <= 0:
                     break
                 added[r, j] = True
+                self.row_cost_[r] += cost[j]
                 used[j] += wshare[r]
         return added
 
@@ -231,7 +248,7 @@ class Plan:
         return added, s, Xc
 
 
-def extraction(predict, X, Xc, w, s, y, added, cost_per_code, per=1000.0):
+def extraction(predict, X, Xc, w, s, y, added, cost_per_code, per=1000.0, row_cost=None):
     """What the plan gains, per `per` enrollees of weight.
 
     payment_base      sum w f(x)
@@ -247,7 +264,8 @@ def extraction(predict, X, Xc, w, s, y, added, cost_per_code, per=1000.0):
     p0, p1 = predict(np.asarray(X, float)), predict(np.asarray(Xc, float))
     codes = float(np.sum(w * added.sum(axis=1)))
     k = per / w.sum()
-    coding = float(np.sum(w * (p1 - p0))) - cost_per_code * codes
+    paid = float(np.sum(w * row_cost)) if row_cost is not None else cost_per_code * codes
+    coding = float(np.sum(w * (p1 - p0))) - paid
     shift = float(np.sum(w * (s - 1.0) * p1))
     selection = float(np.sum(w * (s - 1.0) * (p1 - y))) if y is not None else shift
     out = {
@@ -269,37 +287,87 @@ def extraction(predict, X, Xc, w, s, y, added, cost_per_code, per=1000.0):
     return out
 
 
+def _halves(groups, seed):
+    g = np.asarray(groups)
+    u = np.unique(g)
+    rng = np.random.default_rng(seed)
+    side = dict(zip(u, rng.permutation(len(u)) % 2))
+    h = np.array([side[x] for x in g])
+    return [np.flatnonzero(h == 0), np.flatnonzero(h == 1)]
+
+
+def respond_cross_fitted(make_formula, plan, X, y, w, columns, halves, Xfit=None, wfit=None):
+    """The plan's response on every row, each half answered against a formula
+    fitted on the other half, so the plan never games a formula's fit to the
+    rows it is responding on. Xfit, wfit: the data the formulas are fitted on
+    (the previous round's coded records and tilted weights); the plan codes
+    the true records X. Returns added, s (normalized within each half), Xc,
+    row_cost and the out-of-fold payments before and after coding."""
+    X = np.asarray(X, float)
+    Xfit = X if Xfit is None else Xfit
+    wfit = w if wfit is None else wfit
+    n = len(X)
+    added = np.zeros((n, len(plan.pool)), bool)
+    s = np.ones(n)
+    Xc = X.copy()
+    row_cost = np.zeros(n)
+    p0 = np.zeros(n)
+    p1 = np.zeros(n)
+    for h, other in ((halves[0], halves[1]), (halves[1], halves[0])):
+        g = make_formula()
+        if hasattr(g, "take_rows"):          # row-aligned inputs such as a DRO reference
+            g.take_rows(other)
+        g.fit(Xfit[other], y[other], wfit[other])
+        sub = plan.subset(h)
+        a_h, s_h, Xc_h = sub.respond(g.predict, X[h], w[h], columns)
+        added[h], s[h], Xc[h] = a_h, s_h, Xc_h
+        row_cost[h] = sub.row_cost_
+        p0[h], p1[h] = g.predict(X[h]), g.predict(Xc_h)
+    return added, s, Xc, row_cost, p0, p1
+
+
 def train(make_formula, plan, X, y, w, columns, iters=20, tol=0.01, damping=0.0,
-          plausible=None, callback=None):
+          plausible=None, callback=None, groups=None, seed=0):
     """Alternate the plan's best response with a refit of the formula on the
     data the response produces: the formula at step t is fitted to the coded
     features and the tilted weights the plan produced against step t - 1, with
-    the true cost y.
+    the true cost y (repeated risk minimization).
+
+    With `groups` (cluster ids), the plan's response is cross-fitted: the rows
+    are split into two cluster-disjoint halves and each half responds to a
+    formula fitted on the other half's current data, so the plan never games
+    in-sample noise. Without it the plan responds to the in-sample fit.
 
     make_formula  () -> object with fit(X, y, w) and predict(X)
-    damping       average the new predictions with the old (0 = none)
-    Returns (formula, path) where path lists mean absolute payment change and
-    extraction at each step on the training data.
+    Returns (formula, path) where path lists the mean absolute change in
+    payment and the plan's gains on the training rows at each step.
     """
     X = np.asarray(X, float)
     f = make_formula().fit(X, y, w)
+    halves = _halves(groups, seed) if groups is not None else None
     path = []
     prev = f.predict(X)
+    Xfit, wfit = X, w
+    k = 1000.0 / w.sum()
     for t in range(1, iters + 1):
-        added, s, Xc = plan.respond(f.predict, X, w, columns, plausible)
+        if halves is not None:
+            added, s, Xc, row_cost, p0, p1 = respond_cross_fitted(make_formula, plan, X, y, w, columns, halves,
+                                                                   Xfit, wfit)
+        else:
+            added, s, Xc = plan.respond(f.predict, X, w, columns, plausible)
+            row_cost = getattr(plan, "row_cost_", plan.cost_per_code * added.sum(axis=1))
+            p0, p1 = f.predict(X), f.predict(Xc)
         g = make_formula().fit(Xc, y, w * s)
-        if damping > 0:
-            # damp by refitting on a blend of the targets: the fitted
-            # payment moves part way toward the new formula
-            blend = (1 - damping) * g.predict(X) + damping * prev
-            g = make_formula().fit(X, blend, w)
         cur = g.predict(X)
         change = float(np.average(np.abs(cur - prev), weights=w) / max(np.average(np.abs(prev), weights=w), 1.0))
-        ext = extraction(f.predict, X, Xc, w, s, y, added, plan.cost_per_code)
-        path.append({"iter": t, "change": change, **ext})
+        coding = (float(np.sum(w * (p1 - p0))) - float(np.sum(w * row_cost))) * k
+        selection = float(np.sum(w * (s - 1.0) * (p1 - y))) * k
+        path.append({"iter": t, "change": change, "coding": coding, "selection": selection,
+                     "extraction": coding + selection, "payment_base": float(np.sum(w * p0)) * k})
         if callback:
             callback(t, g, path[-1])
         f, prev = g, cur
+        Xfit, wfit = Xc, w * s
         if change < tol:
             break
     return f, path
