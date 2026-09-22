@@ -132,22 +132,33 @@ class Plan:
 
     def __init__(self, cost_model=None, cost_per_code=500.0, max_codes=1, reach=0.25,
                  tilt=0.2, rule="threshold", pool=(), plausible=None,
-                 count_col=None, system_col=None, prefix="ccsr_"):
+                 count_col=None, system_col=None, prefix="ccsr_", audit=0.0):
         self.cost_model = cost_model
         self.cost_per_code, self.max_codes, self.reach = cost_per_code, int(max_codes), reach
+        # Audit exposure: each 1% of enrollees already given code j raises the
+        # cost of giving it once more by `audit` dollars. With audit = 0 a
+        # linear formula's best response puts the single most lucrative code
+        # on every reviewed chart; with audit > 0 the plan spreads its codes.
+        self.audit = float(audit)
         self.tilt, self.rule = tilt, rule
         self.pool, self.plausible = list(pool), plausible
         self.count_col, self.system_col, self.prefix = count_col, system_col, prefix
 
     # ------------------------------------------------------------ coding --
-    def code(self, predict, X, w, columns, plausible=None):
-        """Which codes the plan adds: (n, len(pool)) bool, and the gain matrix."""
+    def code(self, predict, X, w, columns, plausible=None, G=None):
+        """Which codes the plan adds: (n, len(pool)) bool, and the gain matrix.
+        Pass a precomputed gain matrix G to reuse it across plan settings; it
+        depends on the formula and the plausibility rule, not on the plan's
+        cost, reach or tilt."""
         P = self.plausible if plausible is None else plausible
-        G = gain_matrix(predict, X, columns, self.pool, P, self.count_col,
-                        self.system_col, self.prefix)
+        if G is None:
+            G = gain_matrix(predict, X, columns, self.pool, P, self.count_col,
+                            self.system_col, self.prefix)
         added = np.zeros(G.shape, bool)
         if not self.pool or self.reach <= 0 or self.max_codes <= 0:
             return added, G
+        if self.audit > 0:
+            return self._code_with_audit(G, w), G
         net = np.where(np.isnan(G), -np.inf, G - self.cost_per_code)
         # best `max_codes` codes per person, by net gain, only if positive
         order = np.argsort(-net, axis=1)[:, :self.max_codes]
@@ -164,6 +175,33 @@ class Plan:
                 if ok:
                     added[r, q] = True
         return added, G
+
+    def _code_with_audit(self, G, w):
+        """Greedy best response when a code's cost rises with how often the
+        plan has already used it. Enrollees are reviewed in descending order of
+        their best available gain until `reach` of the weight is covered; each
+        takes up to `max_codes` codes, each chosen to maximize gain minus the
+        code's current marginal cost."""
+        n, J = G.shape
+        wshare = w / w.sum()
+        used = np.zeros(J)                       # weight share already given each code
+        added = np.zeros(G.shape, bool)
+        best = np.where(np.isnan(G), -np.inf, G).max(axis=1)
+        order = np.argsort(-best)
+        covered = 0.0
+        for r in order:
+            if covered >= self.reach or best[r] <= self.cost_per_code:
+                break
+            covered += wshare[r]
+            for _ in range(self.max_codes):
+                cost = self.cost_per_code + self.audit * 100.0 * used
+                net = np.where(np.isnan(G[r]) | added[r], -np.inf, G[r] - cost)
+                j = int(np.argmax(net))
+                if net[j] <= 0:
+                    break
+                added[r, j] = True
+                used[j] += wshare[r]
+        return added
 
     # --------------------------------------------------------- selection --
     def select(self, payment, w, expected_cost):
@@ -183,9 +221,9 @@ class Plan:
         return s * w.sum() / np.sum(w * s)
 
     # ---------------------------------------------------------- response --
-    def respond(self, predict, X, w, columns, plausible=None):
+    def respond(self, predict, X, w, columns, plausible=None, G=None):
         """Coding then selection. Returns (added, s, X_coded)."""
-        added, _ = self.code(predict, X, w, columns, plausible)
+        added, _ = self.code(predict, X, w, columns, plausible, G)
         Xc = apply_codes(X, columns, self.pool, added, self.count_col, self.system_col, self.prefix)
         pay = predict(Xc)
         cost = self.cost_model.predict(np.asarray(X, float)) if self.cost_model is not None else pay
@@ -220,6 +258,11 @@ def extraction(predict, X, Xc, w, s, y, added, cost_per_code, per=1000.0):
         "codes_added": codes * k,
         "extraction": (coding + selection) * k,
     }
+    if y is not None:
+        # selection split: on what the formula pays for the ungamed record,
+        # and the extra from tilting toward people who were coded
+        out["selection_ungamed"] = float(np.sum(w * (s - 1.0) * (p0 - y))) * k
+        out["selection_interaction"] = float(np.sum(w * (s - 1.0) * (p1 - p0))) * k
     if y is not None:
         out["profit_base"] = float(np.sum(w * (p0 - y))) * k
         out["profit"] = (float(np.sum(w * s * (p1 - y))) - cost_per_code * codes) * k

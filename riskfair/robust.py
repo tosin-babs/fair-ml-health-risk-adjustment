@@ -121,8 +121,12 @@ class DROPaymentWLS(PaymentWLS):
     year, whom no formula predicts and no plan can pick out. Without a
     reference, y is used and the penalty acts on realized residuals.
 
-    Fitted by L-BFGS-B with bounds, warm-started at the capped formula; the
-    objective is convex and the CVaR term contributes a subgradient.
+    Fitted by L-BFGS-B with bounds, warm-started at the capped formula. The
+    CVaR is written in the Rockafellar-Uryasev form with the hinge smoothed
+    by a softplus of temperature tau (in units of the root mean square of
+    cost). Without normalization the objective is convex; normalizing
+    payments to total cost inside it makes it non-convex, so the solution is
+    a local optimum from the warm start.
     """
 
     name = "Payment-form WLS, distributionally robust"

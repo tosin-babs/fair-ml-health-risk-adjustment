@@ -30,7 +30,7 @@ learning: how well they predict medical spending, which groups they pay too \
 little for, what fairness costs, and how they respond to more intensive \
 diagnosis coding. Research benchmarks on the Medical Expenditure Panel Survey, \
 not the CMS formulas.">
-<meta name="author" content="Oluwatosin Dorcas Babalola, Chisom Adiegwu, Eniola Zainab Olamilekan">
+<meta name="author" content="Oluwatosin Dorcas Babalola, Chisom G. Adiegwu, Eniola Zainab Olamilekan">
 <meta property="og:title" content="The Payment Formula">
 <meta property="og:description" content="Research benchmarks on survey data: \
 who payment-style formulas underpay, what it costs to fix, and how coding \
@@ -54,6 +54,11 @@ def main():
     if MARKER not in template:
         raise SystemExit(f"{MARKER} not found in template")
     template = template.replace(MARKER, json.dumps(data, separators=(",", ":")))
+    game = config.ROOT / "tool" / "plan_game.json"
+    if "__PLAN_GAME__" in template:
+        if not game.exists():
+            raise SystemExit("tool/plan_game.json missing: run ../paper7/python/export_explorer.py")
+        template = template.replace("__PLAN_GAME__", game.read_text())
     cut = template.find("<header")
     if cut < 0:
         raise SystemExit("template has no <header>")

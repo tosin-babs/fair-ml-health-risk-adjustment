@@ -234,3 +234,26 @@ def test_dro_gradient_matches_finite_differences():
         e = np.zeros_like(b0); e[j] = 1e-6
         num[j] = (obj(b0 + e)[0] - obj(b0 - e)[0]) / 2e-6
     assert np.allclose(g, num, rtol=1e-4, atol=1e-6)
+
+
+def test_audit_spreads_codes():
+    X, y, w = synthetic(n=4000)
+    f = PaymentWLS().set_columns(COLS).fit(X, y, w)
+    base = dict(cost_per_code=0.0, max_codes=1, reach=0.5, tilt=0.0, pool=POOL,
+                count_col="n_conditions", system_col="n_body_systems")
+    a0, _ = adversary.Plan(**base).code(f.predict, X, w, COLS)
+    a1, _ = adversary.Plan(audit=5000.0, **base).code(f.predict, X, w, COLS)
+    used0 = (a0.sum(axis=0) > 0).sum()
+    used1 = (a1.sum(axis=0) > 0).sum()
+    assert used1 > used0 or (a1.sum(axis=0).max() < a0.sum(axis=0).max())
+
+
+def test_selection_split_adds_up():
+    X, y, w = synthetic()
+    f = PaymentWLS().set_columns(COLS).fit(X, y, w)
+    plan = adversary.Plan(cost_model=_Const(float(np.average(y, weights=w))), cost_per_code=0.0,
+                          max_codes=1, reach=0.3, tilt=0.2, pool=POOL,
+                          count_col="n_conditions", system_col="n_body_systems")
+    added, s, Xc = plan.respond(f.predict, X, w, COLS)
+    e = adversary.extraction(f.predict, X, Xc, w, s, y, added, 0.0)
+    assert abs(e["selection_ungamed"] + e["selection_interaction"] - e["selection"]) < 1e-6 * max(1, abs(e["selection"]))

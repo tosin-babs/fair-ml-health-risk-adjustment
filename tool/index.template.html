@@ -119,10 +119,38 @@ footer a{color:var(--ink)}
   <div class="chart" id="drivers-chart"></div>
 </section>
 
+<section id="s-game">
+  <h2><span class="n">06</span>Let the plan game it</h2>
+  <p class="note">Sections 01 to 05 take the formula as given. Here a simulated health plan fights back through the two channels that make Medicare Advantage cost about a fifth more than traditional Medicare. It <strong>codes</strong>: it reviews the charts of the enrollees with most to gain and adds one diagnosis each where the formula pays more than the code costs to add, only among codes plausible for that person. It <strong>selects</strong>: it recruits harder among the half of enrollees its own cost model says the formula overpays. Move the levers and watch what each formula leaks, and who ends up underpaid. The starting point is the setting that reproduces the Medicare Payment Advisory Commission's figures against the CMS-style formula. Formulas marked "trained" were refitted against the plan until the plan's response stopped changing them.</p>
+  <div class="row">
+    <label for="g-reach">Charts reviewed</label>
+    <input type="range" id="g-reach" min="0" max="7" step="1">
+    <span id="g-reach-l" class="tag"></span>
+  </div>
+  <div class="row">
+    <label for="g-cost">Cost to add a code</label>
+    <input type="range" id="g-cost" min="0" max="4" step="1">
+    <span id="g-cost-l" class="tag"></span>
+  </div>
+  <div class="row">
+    <label for="g-tilt">Selection effort</label>
+    <input type="range" id="g-tilt" min="0" max="5" step="1">
+    <span id="g-tilt-l" class="tag"></span>
+    <button class="chip" id="g-reset" type="button">Reset to the MedPAC-calibrated plan</button>
+  </div>
+  <p class="big" id="g-sentence"></p>
+  <div class="chart" id="g-chart"></div>
+  <h3 class="tag" style="margin-top:22px">Who is underpaid once the plan has responded</h3>
+  <div class="chips" id="g-chips" role="group" aria-label="Choose a formula"></div>
+  <div class="chart" id="g-groups"></div>
+  <p class="note" id="g-note"></p>
+</section>
+
 <footer id="foot"></footer>
 </div>
 
 <script id="model-data" type="application/json">__MODEL_DATA__</script>
+<script id="plan-game" type="application/json">__PLAN_GAME__</script>
 <script>
 (function(){
 const D = JSON.parse(document.getElementById("model-data").textContent);
@@ -282,6 +310,67 @@ const F = D.facts;
     el("text", {x: x(r.shap) + 6, y: y + 4}, svg, money(r.shap));
   });
   $("drivers-chart").appendChild(svg);
+})();
+
+/* 06 plan game */
+(function(){
+  const G = JSON.parse(document.getElementById("plan-game").textContent);
+  const R = G.grid.reach, C = G.grid.cost, T = G.grid.tilt, NG = G.groups.length;
+  const idx = {};
+  G.cells.forEach(c => { idx[c[0] + "|" + c[1] + "|" + c[2] + "|" + c[3]] = c; });
+  const cell = (k, r, c, t) => idx[k + "|" + r + "|" + c + "|" + t];
+  const label = Object.fromEntries(G.formulas.map(f => [f.key, f.label + (f.trained ? " (trained)" : "")]));
+  const near = (arr, v) => arr.reduce((b, x, i) => Math.abs(x - v) < Math.abs(arr[b] - v) ? i : b, 0);
+  function reset(){
+    $("g-reach").value = near(R, G.calibrated.reach);
+    $("g-cost").value = near(C, G.calibrated.cost);
+    $("g-tilt").value = near(T, G.calibrated.tilt);
+  }
+  let pick = "cms";
+  G.formulas.forEach(f => {
+    const b = document.createElement("button");
+    b.className = "chip"; b.type = "button"; b.textContent = label[f.key];
+    b.setAttribute("aria-pressed", f.key === pick ? "true" : "false");
+    b.onclick = () => { pick = f.key; [...$("g-chips").children].forEach(x => x.setAttribute("aria-pressed", x === b ? "true" : "false")); draw(); };
+    $("g-chips").appendChild(b);
+  });
+  function draw(){
+    const r = R[+$("g-reach").value], c = C[+$("g-cost").value], t = T[+$("g-tilt").value];
+    $("g-reach-l").textContent = Math.round(r * 100) + "% of enrollees";
+    $("g-cost-l").textContent = money(c) + " per code";
+    $("g-tilt-l").textContent = t === 0 ? "none" : "±" + Math.round(t * 100) + "% recruiting";
+    const rows = G.formulas.map(f => ({f, x: cell(f.key, r, c, t)})).filter(o => o.x).sort((a, b) => a.x[4] - b.x[4]);
+    const cms = cell("cms", r, c, t), best = rows[0];
+    $("g-sentence").innerHTML = `At these settings the plan takes <strong>${money(cms[4] / 1000)}</strong> per enrollee a year from the CMS-style formula (${cms[7].toFixed(1)}% of what it pays). The least gameable formula here, ${label[best.f.key]}, leaks <strong>${money(best.x[4] / 1000)}</strong>.`;
+    const W = 900, rowH = 30, left = 330, top = 22, H = top + rows.length * rowH + 40;
+    const lo = Math.min(0, ...rows.map(o => Math.min(o.x[5], o.x[6], o.x[4]))), hi = Math.max(...rows.map(o => Math.max(o.x[5], 0) + Math.max(o.x[6], 0))) * 1.08 || 1;
+    const X = v => left + (W - left - 90) * (v - lo) / (hi - lo);
+    const svg = el("svg", {viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "What the plan extracts from each formula"});
+    el("text", {x: left, y: 14}, svg, "per 1,000 enrollees a year:  coding");
+    el("rect", {x: left + 258, y: 5, width: 12, height: 10, fill: "#b8621b"}, svg);
+    el("text", {x: left + 280, y: 14}, svg, "selection");
+    el("rect", {x: left + 358, y: 5, width: 12, height: 10, fill: "#2c5d8a"}, svg);
+    rows.forEach((o, i) => {
+      const y = top + i * rowH + rowH / 2, x = o.x;
+      el("text", {x: left - 10, y: y + 4, "text-anchor": "end", "font-weight": o.f.key === pick ? 600 : 400}, svg, label[o.f.key].length > 46 ? label[o.f.key].slice(0, 45) + "…" : label[o.f.key]);
+      const cod = Math.max(x[5], 0), sel = Math.max(x[6], 0);
+      el("rect", {x: X(0), y: y - 9, width: X(cod) - X(0), height: 18, fill: "#b8621b"}, svg);
+      el("rect", {x: X(cod), y: y - 9, width: X(cod + sel) - X(cod), height: 18, fill: "#2c5d8a"}, svg);
+      el("text", {x: X(cod + sel) + 6, y: y + 4}, svg, money(x[4]));
+    });
+    el("line", {x1: X(0), x2: X(0), y1: top - 4, y2: H - 30, stroke: "#1d2a24"}, svg);
+    $("g-chart").replaceChildren(svg);
+    const x = cell(pick, r, c, t), x0 = cell(pick, 0, c, 0);
+    $("g-groups").innerHTML = "<table><thead><tr><th>Group</th><th>Paid minus cost, no gaming</th><th>After the plan responds</th><th>Enrollment vs no selection</th></tr></thead><tbody>" +
+      G.groups.map((g, j) => `<tr><td>${g}</td><td>${money(x0[8 + j])}</td><td>${money(x[8 + j])}</td><td>${((x[8 + NG + j] - 1) * 100 >= 0 ? "+" : "") + ((x[8 + NG + j] - 1) * 100).toFixed(1)}%</td></tr>`).join("") +
+      "</tbody></table>";
+    $("g-note").innerHTML = `Per person-year, for ${label[pick]} (out-of-sample R² ${G.formulas.find(f => f.key === pick).r2.toFixed(3)} with no gaming). ` +
+      `The plan cannot see functional status, age or income; it moves these groups only through what its cost model predicts. ${G.note} ` +
+      `From the paper <em>${G.paper}</em>: <a href="${G.repository}">${G.repository.replace("https://", "")}</a>.`;
+  }
+  ["g-reach", "g-cost", "g-tilt"].forEach(id => $(id).oninput = draw);
+  $("g-reset").onclick = () => { reset(); draw(); };
+  reset(); draw();
 })();
 
 $("foot").innerHTML = `Data: ${D.meta.source}; ${D.meta.persons.toLocaleString("en-US")} people representing ${D.meta.population_millions} million a year; ${D.meta.dollars}. ` +

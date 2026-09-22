@@ -7,10 +7,12 @@ authors:
     email: obabalola4@student.gsu.edu
     affiliation: "Department of Actuarial Science and Quantitative Risk Analysis and Management, Georgia State University, Atlanta, GA, USA"
   - family-names: Adiegwu
-    given-names: Chisom
+    given-names: Chisom G.
+    email: Cadiegwu1@student.gsu.edu
     affiliation: "Department of Actuarial Science and Quantitative Risk Analysis and Management, Georgia State University, Atlanta, GA, USA"
   - family-names: Olamilekan
     given-names: Eniola Zainab
+    email: eolamilekan1@student.gsu.edu
     affiliation: "Department of Actuarial Science and Quantitative Risk Analysis and Management, Georgia State University, Atlanta, GA, USA"
 version: 0.3.0
 license: MIT
