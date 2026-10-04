@@ -2,6 +2,10 @@ cff-version: 1.2.0
 message: "If you use riskfair or the benchmark, please cite it as below."
 title: "riskfair: Interpretable and Fair Machine Learning for Health-Cost Prediction and Risk Adjustment"
 authors:
+  - family-names: Ologunbaba
+    given-names: Temitope
+    email: ologunbabatope@gmail.com
+    affiliation: "Department of Electrical Engineering, Federal University of Technology, Akure, Nigeria"
   - family-names: Babalola
     given-names: Oluwatosin Dorcas
     email: obabalola4@student.gsu.edu

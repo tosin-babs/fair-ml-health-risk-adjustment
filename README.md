@@ -117,6 +117,7 @@ libomp` is needed for LightGBM.
 
 ## Authors
 
+- Temitope Ologunbaba, Department of Electrical Engineering, Federal University of Technology, Akure, Nigeria, ologunbabatope@gmail.com
 - Oluwatosin Dorcas Babalola, Department of Actuarial Science and Quantitative Risk Analysis and Management, Georgia State University, Atlanta, GA, USA, obabalola4@student.gsu.edu (corresponding)
 - Chisom G. Adiegwu, Department of Actuarial Science and Quantitative Risk Analysis and Management, Georgia State University, Atlanta, GA, USA, Cadiegwu1@student.gsu.edu
 - Eniola Zainab Olamilekan, Department of Actuarial Science and Quantitative Risk Analysis and Management, Georgia State University, Atlanta, GA, USA, eolamilekan1@student.gsu.edu
