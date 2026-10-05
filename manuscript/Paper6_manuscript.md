@@ -2,11 +2,13 @@
 
 **Temitope Ologunbaba**¹, **Eniola Zainab Olamilekan**², **Oluwatosin Dorcas Babalola**² *(corresponding author)*, **Chisom G. Adiegwu**²
 
-¹ Department of Electrical Engineering, Federal University of Technology, Akure, Nigeria.
+¹ Independent researcher.
 
-² Department of Actuarial Science and Quantitative Risk Analysis and Management, Georgia State University, Atlanta, GA, USA.
+² Maurice R. Greenberg School of Risk Science, J. Mack Robinson College of Business, Georgia State University, Atlanta, GA, USA.
 
 **Email.** Temitope Ologunbaba: ologunbabatope@gmail.com; Eniola Zainab Olamilekan: eolamilekan1@student.gsu.edu; Oluwatosin Dorcas Babalola: obabalola4@student.gsu.edu; Chisom G. Adiegwu: Cadiegwu1@student.gsu.edu.
+
+**Date.** September 2026.
 
 **Word count.** 7,105 excluding abstract, tables, figure captions and references.
 
