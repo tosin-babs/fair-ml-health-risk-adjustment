@@ -8,7 +8,7 @@
 
 **Email.** Temitope Ologunbaba: ologunbabatope@gmail.com; Eniola Zainab Olamilekan: eolamilekan1@student.gsu.edu; Oluwatosin Dorcas Babalola: obabalola4@student.gsu.edu; Chisom G. Adiegwu: Cadiegwu1@student.gsu.edu.
 
-**Date.** September 2026.
+**Date.** December 2025.
 
 **Word count.** 7,105 excluding abstract, tables, figure captions and references.
 
@@ -292,7 +292,7 @@ A public benchmark shows that flexible models predict next-year health spending 
 28. Wüthrich, M. V., & Merz, M. (2023). *Statistical Foundations of Actuarial Learning and its Applications*. Springer. doi:10.1007/978-3-031-12409-9
 29. Zink, A., & Rose, S. (2020). Fair regression for health care spending. *Biometrics*, 76(3), 973–982. doi:10.1111/biom.13206
 30. Zink, A., & Rose, S. (2021). Identifying undercompensated groups defined by multiple attributes in risk adjustment. *BMJ Health & Care Informatics*, 28(1), e100414. doi:10.1136/bmjhci-2021-100414
-31. Agency for Healthcare Research and Quality. *Medical Expenditure Panel Survey, Panel 23–27 Longitudinal Data Files (HC-217, HC-225, HC-234, HC-244, HC-252) and Medical Conditions Files (HC-207, HC-214, HC-222, HC-231, HC-241)*. Accessed September 2026.
-32. Agency for Healthcare Research and Quality, Healthcare Cost and Utilization Project. *Clinical Classifications Software Refined (CCSR) for ICD-10-CM Diagnoses, v2026.1*. Accessed September 2026.
+31. Agency for Healthcare Research and Quality. *Medical Expenditure Panel Survey, Panel 23–27 Longitudinal Data Files (HC-217, HC-225, HC-234, HC-244, HC-252) and Medical Conditions Files (HC-207, HC-214, HC-222, HC-231, HC-241)*.
+32. Agency for Healthcare Research and Quality, Healthcare Cost and Utilization Project. *Clinical Classifications Software Refined (CCSR) for ICD-10-CM Diagnoses, v2026.1*.
 
-*DOIs were verified against the Crossref REST API on 15 September 2026. MedPAC figures were checked against the chapter text.*
+*DOIs were verified against the Crossref REST API. MedPAC figures were checked against the chapter text.*
