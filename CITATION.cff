@@ -6,6 +6,10 @@ authors:
     given-names: Temitope
     email: ologunbabatope@gmail.com
     affiliation: "Department of Electrical Engineering, Federal University of Technology, Akure, Nigeria"
+  - family-names: Olamilekan
+    given-names: Eniola Zainab
+    email: eolamilekan1@student.gsu.edu
+    affiliation: "Department of Actuarial Science and Quantitative Risk Analysis and Management, Georgia State University, Atlanta, GA, USA"
   - family-names: Babalola
     given-names: Oluwatosin Dorcas
     email: obabalola4@student.gsu.edu
@@ -13,10 +17,6 @@ authors:
   - family-names: Adiegwu
     given-names: Chisom G.
     email: Cadiegwu1@student.gsu.edu
-    affiliation: "Department of Actuarial Science and Quantitative Risk Analysis and Management, Georgia State University, Atlanta, GA, USA"
-  - family-names: Olamilekan
-    given-names: Eniola Zainab
-    email: eolamilekan1@student.gsu.edu
     affiliation: "Department of Actuarial Science and Quantitative Risk Analysis and Management, Georgia State University, Atlanta, GA, USA"
 version: 0.3.0
 license: MIT

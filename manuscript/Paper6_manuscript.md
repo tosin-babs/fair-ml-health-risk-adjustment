@@ -1,12 +1,12 @@
 # Interpretable and Fair Machine Learning for Health-Cost Prediction and Risk Adjustment: A Reproducible Benchmark on Public Data and an Open-Source Toolkit
 
-**Temitope Ologunbaba**¹, **Oluwatosin Dorcas Babalola**² *(corresponding author)*, **Chisom G. Adiegwu**², **Eniola Zainab Olamilekan**²
+**Temitope Ologunbaba**¹, **Eniola Zainab Olamilekan**², **Oluwatosin Dorcas Babalola**² *(corresponding author)*, **Chisom G. Adiegwu**²
 
 ¹ Department of Electrical Engineering, Federal University of Technology, Akure, Nigeria.
 
 ² Department of Actuarial Science and Quantitative Risk Analysis and Management, Georgia State University, Atlanta, GA, USA.
 
-**Email.** Temitope Ologunbaba: ologunbabatope@gmail.com; Oluwatosin Dorcas Babalola: obabalola4@student.gsu.edu; Chisom G. Adiegwu: Cadiegwu1@student.gsu.edu; Eniola Zainab Olamilekan: eolamilekan1@student.gsu.edu.
+**Email.** Temitope Ologunbaba: ologunbabatope@gmail.com; Eniola Zainab Olamilekan: eolamilekan1@student.gsu.edu; Oluwatosin Dorcas Babalola: obabalola4@student.gsu.edu; Chisom G. Adiegwu: Cadiegwu1@student.gsu.edu.
 
 **Word count.** 7,105 excluding abstract, tables, figure captions and references.
 
